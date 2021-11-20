@@ -241,6 +241,7 @@ static void MX_USART2_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART2_Init 2 */
+  logger_init(&huart2);
 
   /* USER CODE END USART2_Init 2 */
 
@@ -338,7 +339,6 @@ static void MX_GPIO_Init(void)
 void entry_logger_thread(void const * argument)
 {
   /* USER CODE BEGIN 5 */
-  logger_init(&huart2);
   logger_thread(argument);
   /* USER CODE END 5 */
 }
@@ -356,7 +356,35 @@ void entry_demo_th(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+      /*log_str("Test\n");
+      log_dec(123);
+      log_str("\n");
+      log_dec(12345);
+      log_str("\n");
+      log_dec(1234567890);
+      log_str("\n");
+
+      log_hex((uint8_t)0x12);
+      log_str("\n");
+      log_hex((uint16_t)0x1234);
+      log_str("\n");
+      log_hex((uint32_t)0x123456);
+      log_str("\n");
+      log_hex((uint32_t)0x12345678);
+      log_str("\n");
+
+      log_dec(-123);
+      log_str("\n");
+      log_dec(-12345);
+      log_str("\n");
+      log_dec(-1234567890);
+      log_str("\n");*/
+
+      int i;
+      for(i=0; i<100; i++)
+          log_str("Test\n");
+
+    osDelay(500);
   }
   /* USER CODE END entry_demo_th */
 }
