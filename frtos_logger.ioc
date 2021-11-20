@@ -1,9 +1,8 @@
 #MicroXplorer Configuration settings - do not modify
-FREERTOS.Events01=
 FREERTOS.FootprintOK=true
-FREERTOS.IPParameters=Tasks01,MEMORY_ALLOCATION,FootprintOK,Events01,configENABLE_BACKWARD_COMPATIBILITY,configRECORD_STACK_HIGH_ADDRESS
+FREERTOS.IPParameters=Tasks01,MEMORY_ALLOCATION,FootprintOK,configENABLE_BACKWARD_COMPATIBILITY,configRECORD_STACK_HIGH_ADDRESS
 FREERTOS.MEMORY_ALLOCATION=1
-FREERTOS.Tasks01=defaultTask,0,128,StartDefaultTask,Default,NULL,Static,defaultTaskBuffer,defaultTaskControlBlock
+FREERTOS.Tasks01=logger_th,-3,128,entry_logger_thread,Default,NULL,Static,logger_th_buffer,logger_th_cb
 FREERTOS.configENABLE_BACKWARD_COMPATIBILITY=0
 FREERTOS.configRECORD_STACK_HIGH_ADDRESS=1
 File.Version=6

@@ -10,10 +10,14 @@ extern "C" {
 
 
 
+void logger_thread(void const * argument);
 
 
 
 
+#ifdef  __cplusplus
+}
+#endif
 
 
 #endif
