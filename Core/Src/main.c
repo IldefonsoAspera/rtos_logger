@@ -46,6 +46,9 @@ UART_HandleTypeDef huart2;
 osThreadId logger_thHandle;
 uint32_t logger_th_buffer[ 128 ];
 osStaticThreadDef_t logger_th_cb;
+osThreadId demo_thHandle;
+uint32_t demo_th_buffer[ 128 ];
+osStaticThreadDef_t demo_th_cb;
 /* USER CODE BEGIN PV */
 /* USER CODE END PV */
 
@@ -54,6 +57,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 void entry_logger_thread(void const * argument);
+void entry_demo_th(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -117,6 +121,10 @@ int main(void)
   /* definition and creation of logger_th */
   osThreadStaticDef(logger_th, entry_logger_thread, osPriorityIdle, 0, 128, logger_th_buffer, &logger_th_cb);
   logger_thHandle = osThreadCreate(osThread(logger_th), NULL);
+
+  /* definition and creation of demo_th */
+  osThreadStaticDef(demo_th, entry_demo_th, osPriorityNormal, 0, 128, demo_th_buffer, &demo_th_cb);
+  demo_thHandle = osThreadCreate(osThread(demo_th), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
 
@@ -330,8 +338,48 @@ static void MX_GPIO_Init(void)
 void entry_logger_thread(void const * argument)
 {
   /* USER CODE BEGIN 5 */
+  logger_init(&huart2);
   logger_thread(argument);
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_entry_demo_th */
+/**
+* @brief Function implementing the demo_th thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_entry_demo_th */
+void entry_demo_th(void const * argument)
+{
+  /* USER CODE BEGIN entry_demo_th */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END entry_demo_th */
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM17 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM17) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
 }
 
 /**
