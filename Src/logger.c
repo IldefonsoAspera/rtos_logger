@@ -21,13 +21,14 @@ struct queue_item
 
 
 static UART_HandleTypeDef *mp_huart = NULL;
+static TIM_HandleTypeDef  *mp_htim  = NULL;
 
-QueueHandle_t qInput;
+static QueueHandle_t qInput;
 static StaticQueue_t qInputStatic;
-uint8_t qInputBuffer[LOG_INPUT_QUEUE_SIZE * sizeof(struct queue_item)];
+static uint8_t qInputBuffer[LOG_INPUT_QUEUE_SIZE * sizeof(struct queue_item)];
 
-char out_buf[LOG_OUTPUT_BUFFER_SIZE];
-uint32_t outBuf_idx = 0;
+static char out_buf[LOG_OUTPUT_BUFFER_SIZE];
+static uint32_t outBuf_idx = 0;
 
 
 static inline uint8_t process_number_decimal(uint32_t number, char *output)
@@ -126,7 +127,9 @@ void _log_var(uint32_t number, enum log_data_type type)
 
 void logger_thread(void const * argument)
 {
+    volatile uint32_t i, j, result;
 
+    HAL_TIM_Base_Start(mp_htim);
     while(1)
     {
         struct queue_item item;
@@ -158,17 +161,24 @@ void logger_thread(void const * argument)
 
         if(!uxQueueMessagesWaiting(qInput))
         {
+
+            __HAL_TIM_SET_COUNTER(mp_htim, 0);
+            i = mp_htim->Instance->CNT;
             HAL_UART_Transmit(mp_huart, (uint8_t*)out_buf, outBuf_idx, HAL_MAX_DELAY);
             HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+            j = mp_htim->Instance->CNT;
+            result = j-i;                   // Number of CPU cycles to execute this section
             outBuf_idx = 0;
+
             //osDelay(500);
         }
     }
 }
 
 
-void logger_init(UART_HandleTypeDef *p_huart)
+void logger_init(UART_HandleTypeDef *p_huart, TIM_HandleTypeDef *p_htim)
 {
     mp_huart = p_huart;
+    mp_htim  = p_htim;
     qInput   = xQueueCreateStatic(LOG_INPUT_QUEUE_SIZE, sizeof(struct queue_item), qInputBuffer, &qInputStatic);
 }
