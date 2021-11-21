@@ -129,7 +129,7 @@ int main(void)
   demo_thHandle = osThreadCreate(osThread(demo_th), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  logger_init(&htim2);
+  logger_init(USART2);
 
   /* USER CODE END RTOS_THREADS */
 
@@ -419,10 +419,15 @@ void entry_logger_thread(void const * argument)
 void entry_demo_th(void const * argument)
 {
   /* USER CODE BEGIN entry_demo_th */
+    volatile uint32_t exec_time;
+    HAL_TIM_Base_Start(&htim2);
+
   /* Infinite loop */
   for(;;)
   {
-      /*log_str("Test\n");
+      (void)exec_time;
+
+      log_str("Test\n");
       log_dec(123);
       log_str("\n");
       log_dec(12345);
@@ -444,11 +449,16 @@ void entry_demo_th(void const * argument)
       log_dec(-12345);
       log_str("\n");
       log_dec(-1234567890);
-      log_str("\n");*/
+      log_str("\n");
 
-      int i;
-      for(i=0; i<100; i++)
-          log_str("Test\n");
+//      exec_time = 0;
+//      __HAL_TIM_SET_COUNTER(&htim2, 0);
+//      log_hex((uint32_t)123456);
+//      exec_time = __HAL_TIM_GET_COUNTER(&htim2);
+//
+//      int i;
+//      for(i=0; i<100; i++)
+//          log_str("Test\n");
 
     osDelay(500);
   }
