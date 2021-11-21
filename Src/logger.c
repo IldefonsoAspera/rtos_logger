@@ -66,13 +66,6 @@ static inline void process_number_hex(uint32_t number, char *output, uint8_t n_d
 }
 
 
-void _log_const_string(const char *string, uint32_t length)
-{
-    struct queue_item item = {.type = LOG_STRING, .data = (uint32_t)string, .str_len = length};
-    xQueueSendToBack(qInput, &item, 0);
-}
-
-
 static void proc_string(char *string, uint32_t length)
 {
     while(length--)
@@ -117,10 +110,30 @@ static void proc_sint_dec(int32_t number)
 }
 
 
+static bool isInterrupt()
+{
+    return (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0 ;
+}
+
+
 void _log_var(uint32_t number, enum log_data_type type)
 {
     struct queue_item item = {.type = type, .data = number};
-    xQueueSendToBack(qInput, &item, 0);
+
+    if(isInterrupt())
+        xQueueSendToBackFromISR(qInput, &item, NULL);
+    else
+        xQueueSendToBack(qInput, &item, 0);
+}
+
+
+void _log_const_string(const char *string, uint32_t length)
+{
+    struct queue_item item = {.type = LOG_STRING, .data = (uint32_t)string, .str_len = length};
+    if(isInterrupt())
+        xQueueSendToBackFromISR(qInput, &item, NULL);
+    else
+        xQueueSendToBack(qInput, &item, 0);
 }
 
 
