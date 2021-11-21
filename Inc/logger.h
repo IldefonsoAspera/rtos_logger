@@ -55,8 +55,10 @@ enum log_data_type {
                                                         signed int:     LOG_HEX_8))
 
 
+#define logc_str(cond, string)  do{ if(cond){ log_str(string); } } while(0)
+#define logc_dec(cond, number)  do{ if(cond){ log_dec(number); } } while(0)
+#define logc_hex(cond, number)  do{ if(cond){ log_hex(number); } } while(0)
 
-void _log_var_hex(uint32_t number, enum log_data_type type, uint8_t n_digits);
 
 
 void _log_var(uint32_t number, enum log_data_type type);

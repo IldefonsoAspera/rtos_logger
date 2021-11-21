@@ -451,6 +451,16 @@ void entry_demo_th(void const * argument)
       log_dec(-1234567890);
       log_str("\n");
 
+      logc_str(1, "Conditional positive\n");
+      logc_dec(1, (uint8_t)123);
+      log_str("\n");
+      logc_hex(1, (uint8_t)0x12);
+      log_str("\n");
+      logc_dec(0, (uint8_t)88);
+      logc_hex(0, (uint8_t)0x77);
+      logc_str(1, "Conditional positive\n");
+      logc_str(0, "Conditional positive\n");
+
 //      exec_time = 0;
 //      __HAL_TIM_SET_COUNTER(&htim2, 0);
 //      log_hex((uint32_t)123456);
