@@ -404,39 +404,56 @@ void entry_demo_th(void const * argument)
   {
       (void)exec_time;
 
-      log_str("Test\n");
+      log_str("Test\r\n");
+      log_str("Tst0\r\n");
+      log_str("Tst1\r\n", LOG_COLOR_RED);
+      log_str("Tst2\r\n", LOG_COLOR_BLUE);
+      log_str("Tst2\r\n", LOG_COLOR_DEFAULT);
+
       log_dec(123);
+      log_char('\r');
       log_char('\n');
-      log_dec(12345);
+      log_dec(12345, LOG_COLOR_YELLOW);
+      log_char('\r');
       log_char('\n');
-      log_dec(1234567890);
-      log_char('\n');
+      log_dec(1234567890, LOG_COLOR_GREEN);
+      log_char('\r', LOG_COLOR_YELLOW);
+      log_char('\n', LOG_COLOR_DEFAULT);
 
       log_hex((uint8_t)0x12);
+      log_char('\r');
       log_char('\n');
       log_hex((uint16_t)0x1234);
+      log_char('\r');
       log_char('\n');
       log_hex((uint32_t)0x123456);
+      log_char('\r');
       log_char('\n');
       log_hex((uint32_t)0x12345678);
+      log_char('\r');
       log_char('\n');
 
       log_dec(-123);
+      log_char('\r');
       log_char('\n');
       log_dec(-12345);
+      log_char('\r');
       log_char('\n');
       log_dec(-1234567890);
+      log_char('\r');
       log_char('\n');
 
-      logc_str(1, "Conditional positive\n");
+      //logc_str(1, "Conditional positive\n");
       logc_dec(1, (uint8_t)123);
+      log_char('\r');
       log_char('\n');
       logc_hex(1, (uint8_t)0x12);
+      log_char('\r');
       log_char('\n');
       logc_dec(0, (uint8_t)88);
       logc_hex(0, (uint8_t)0x77);
-      logc_str(1, "Conditional positive\n");
-      logc_str(0, "Conditional positive\n");
+      //logc_str(1, "Conditional positive\n");
+      //logc_str(0, "Conditional positive\n");
 
 //      exec_time = 0;
 //      __HAL_TIM_SET_COUNTER(&htim2, 0);

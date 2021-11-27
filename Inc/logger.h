@@ -18,6 +18,13 @@ extern "C" {
 #include <string.h>
 
 
+/*********************** User configurable definitions ***********************/
+
+#define LOG_SUPPORT_ANSI_COLOR  1   // Activating colors increase element size
+
+/*****************************************************************************/
+
+
 enum log_data_type {
     LOG_STRING,
     LOG_UINT_DEC,
@@ -28,50 +35,84 @@ enum log_data_type {
     LOG_CHAR
 };
 
-
-#define log_str(str)    _log_const_string(str, strlen(str))
-
-#define log_char(chr)    _log_char(chr)
-
-
-#define log_dec(number) _log_var((uint32_t)number, _Generic((number),                  \
-                                                        unsigned char:  LOG_UINT_DEC,  \
-                                                        unsigned short: LOG_UINT_DEC,  \
-                                                        unsigned long:  LOG_UINT_DEC,  \
-                                                        unsigned int:   LOG_UINT_DEC,  \
-                                                        char:           LOG_INT_DEC,   \
-                                                        signed char:    LOG_INT_DEC,   \
-                                                        signed short:   LOG_INT_DEC,   \
-                                                        signed long:    LOG_INT_DEC,   \
-                                                        signed int:     LOG_INT_DEC))
+enum log_color {
+    LOG_COLOR_DEFAULT,
+    LOG_COLOR_BLACK,
+    LOG_COLOR_RED,
+    LOG_COLOR_GREEN,
+    LOG_COLOR_YELLOW,
+    LOG_COLOR_BLUE,
+    LOG_COLOR_MAGENTA,
+    LOG_COLOR_CYAN,
+    LOG_COLOR_WHITE,
+    _LOG_COLOR_LEN,
+    LOG_COLOR_NONE
+};
 
 
-#define log_hex(number) _log_var((uint32_t)(number), _Generic((number),             \
-                                                        unsigned char:  LOG_HEX_2,  \
-                                                        unsigned short: LOG_HEX_4,  \
-                                                        unsigned long:  LOG_HEX_8,  \
-                                                        unsigned int:   LOG_HEX_8,  \
-                                                        char:           LOG_HEX_2,  \
-                                                        signed char:    LOG_HEX_2,  \
-                                                        signed short:   LOG_HEX_4,  \
-                                                        signed long:    LOG_HEX_8,  \
-                                                        signed int:     LOG_HEX_8))
-
-
-#define logc_str(cond, string)  do{ if(cond){ log_str(string); } } while(0)
-#define logc_dec(cond, number)  do{ if(cond){ log_dec(number); } } while(0)
-#define logc_hex(cond, number)  do{ if(cond){ log_hex(number); } } while(0)
+#define GET_MACRO(_1, NAME, ...) NAME
 
 
 
-void _log_var(uint32_t number, enum log_data_type type);
-void _log_const_string(const char *string, uint32_t length);
-void _log_char(char chr);
+
+
+#define log_str(str, ...)     GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_str(str, strlen(str) __VA_OPT__(,) __VA_ARGS__), \
+                                                                  _log_str(str, strlen(str), LOG_COLOR_NONE))
+
+#define log_char(chr, ...)    GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_char(chr __VA_OPT__(,) __VA_ARGS__),     \
+                                                                  _log_char(chr, LOG_COLOR_NONE))
+
+#define log_dec(number, ...)  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_dec(number __VA_OPT__(,) __VA_ARGS__), \
+                                                                  _log_dec(number, LOG_COLOR_NONE))
+
+#define log_hex(number, ...)  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_hex(number __VA_OPT__(,) __VA_ARGS__), \
+                                                                  _log_hex(number, LOG_COLOR_NONE))
+
+
+#define _log_dec(number, color) _log_var((uint32_t)number, _Generic((number),              \
+                                                            unsigned char:  LOG_UINT_DEC,  \
+                                                            unsigned short: LOG_UINT_DEC,  \
+                                                            unsigned long:  LOG_UINT_DEC,  \
+                                                            unsigned int:   LOG_UINT_DEC,  \
+                                                            char:           LOG_INT_DEC,   \
+                                                            signed char:    LOG_INT_DEC,   \
+                                                            signed short:   LOG_INT_DEC,   \
+                                                            signed long:    LOG_INT_DEC,   \
+                                                            signed int:     LOG_INT_DEC), color)
+
+
+#define _log_hex(number, color) _log_var((uint32_t)(number), _Generic((number),         \
+                                                            unsigned char:  LOG_HEX_2,  \
+                                                            unsigned short: LOG_HEX_4,  \
+                                                            unsigned long:  LOG_HEX_8,  \
+                                                            unsigned int:   LOG_HEX_8,  \
+                                                            char:           LOG_HEX_2,  \
+                                                            signed char:    LOG_HEX_2,  \
+                                                            signed short:   LOG_HEX_4,  \
+                                                            signed long:    LOG_HEX_8,  \
+                                                            signed int:     LOG_HEX_8), color)
+
+#define logc_str(cond, string, ...)  do{ if(cond){ log_str(string __VA_OPT__(,) __VA_ARGS__); } } while(0)
+#define logc_dec(cond, number, ...)  do{ if(cond){ log_dec(number __VA_OPT__(,) __VA_ARGS__); } } while(0)
+#define logc_hex(cond, number, ...)  do{ if(cond){ log_hex(number __VA_OPT__(,) __VA_ARGS__); } } while(0)
+
+
+void _log_var(uint32_t number, enum log_data_type type, enum log_color color);
+void _log_str(char *string,    uint32_t length,         enum log_color color);
+void _log_char(char chr,       enum log_color color);
 
 
 void log_flush(void);
 void logger_thread(void const * argument);
 void logger_init(UART_HandleTypeDef *p_husart);
+
+
+//#define log_str(str, color)    _log_const_string(LOG_ANSI_PREFIX color LOG_ANSI_SUFFIX str, strlen(LOG_ANSI_PREFIX color LOG_ANSI_SUFFIX str))
+/*#if LOG_SUPPORT_ANSI_COLOR
+#define log_str(str, ...)    _log_const_string(str, strlen(str) __VA_OPT__(,) __VA_ARGS__)
+#else
+#define log_str(str, ...)    _log_const_string(str, strlen(str) __VA_OPT__(,) __VA_ARGS__)
+#endif*/
 
 
 

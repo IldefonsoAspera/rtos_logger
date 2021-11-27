@@ -16,11 +16,43 @@
 #define LOG_ARRAY_N_ELEM(x)     (sizeof(x)/sizeof((x)[0]))
 
 
+#if LOG_SUPPORT_ANSI_COLOR
+#define LOG_ANSI_PREFIX         "\x1B["
+#define LOG_ANSI_SUFFIX         'm'
+#define LOG_ANSI_COLOR_DEFAULT  "0"
+#define LOG_ANSI_COLOR_BLACK    "30"
+#define LOG_ANSI_COLOR_RED      "31"
+#define LOG_ANSI_COLOR_GREEN    "32"
+#define LOG_ANSI_COLOR_YELLOW   "33"
+#define LOG_ANSI_COLOR_BLUE     "34"
+#define LOG_ANSI_COLOR_MAGENTA  "35"
+#define LOG_ANSI_COLOR_CYAN     "36"
+#define LOG_ANSI_COLOR_WHITE    "37"
+
+static char ansi_colors[_LOG_COLOR_LEN][2] = {
+    {'0', ' '},
+    {'3', '0'},
+    {'3', '1'},
+    {'3', '2'},
+    {'3', '3'},
+    {'3', '4'},
+    {'3', '5'},
+    {'3', '6'},
+    {'3', '7'},
+};
+#endif
+
+
+
+
 typedef struct log_fifo_item_s
 {
     uint32_t           data;
     uint16_t           str_len;
     enum log_data_type type;
+#if LOG_SUPPORT_ANSI_COLOR
+    enum log_color     color;
+#endif
 } log_fifo_item_t;
 
 
@@ -31,6 +63,8 @@ typedef struct log_fifo_s
     uint32_t rdIdx;
     uint32_t nItems;
 } log_fifo_t;
+
+
 
 
 
@@ -125,6 +159,24 @@ static inline void process_number_hex(uint32_t number, char *output, uint8_t n_d
 }
 
 
+#if LOG_SUPPORT_ANSI_COLOR
+static void set_color(enum log_color color)
+{
+    if(color != LOG_COLOR_NONE)
+    {
+        out_buf[outBuf_idx++] = '\x1B';
+        out_buf[outBuf_idx++] = '[';
+        out_buf[outBuf_idx++] = ansi_colors[color][0];
+        
+        if(color != LOG_COLOR_DEFAULT)
+            out_buf[outBuf_idx++] = ansi_colors[color][1];
+
+        out_buf[outBuf_idx++] = LOG_ANSI_SUFFIX;
+    }
+}
+#endif
+
+
 static void proc_string(char *string, uint32_t length)
 {
     while(length--)
@@ -169,23 +221,38 @@ static void proc_sint_dec(int32_t number)
 }
 
 
-void _log_var(uint32_t number, enum log_data_type type)
+void _log_var(uint32_t number, enum log_data_type type, enum log_color color)
 {
     log_fifo_item_t item = {.type = type, .data = number};
+
+#if LOG_SUPPORT_ANSI_COLOR
+        item.color = color;
+#endif
+
     log_fifo_put(&item, &logFifo);
 }
 
 
-void _log_const_string(const char *string, uint32_t length)
+void _log_str(char *string, uint32_t length, enum log_color color)
 {
     log_fifo_item_t item = {.type = LOG_STRING, .data = (uint32_t)string, .str_len = length};
+
+#if LOG_SUPPORT_ANSI_COLOR
+        item.color = color;
+#endif
+
     log_fifo_put(&item, &logFifo);
 }
 
 
-void _log_char(char chr)
+void _log_char(char chr, enum log_color color)
 {
     log_fifo_item_t item = {.type = LOG_CHAR, .data = chr};
+
+#if LOG_SUPPORT_ANSI_COLOR
+        item.color = color;
+#endif
+
     log_fifo_put(&item, &logFifo);
 }
 
@@ -196,6 +263,9 @@ void log_flush(void)
 
     while(log_fifo_get(&item, &logFifo))
     {
+#if LOG_SUPPORT_ANSI_COLOR
+        set_color(item.color);
+#endif
         switch(item.type)
         {
         case LOG_STRING:
