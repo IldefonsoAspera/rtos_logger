@@ -34,7 +34,7 @@ typedef struct log_fifo_s
 
 
 
-static USART_TypeDef *mp_husart = NULL;
+static UART_HandleTypeDef *mp_husart = NULL;
 
 static char out_buf[LOG_OUTPUT_BUFFER_SIZE];
 static uint32_t outBuf_idx = 0;
@@ -226,21 +226,16 @@ void logger_thread(void const * argument)
             }
         }
 
-        for(int idx = 0; idx < outBuf_idx; idx++)
-        {
-            LL_USART_TransmitData8(USART2, out_buf[idx]);
-            while(!LL_USART_IsActiveFlag_TC(USART2));
-        }
+        HAL_UART_Transmit(mp_husart, (uint8_t*)out_buf, outBuf_idx, HAL_MAX_DELAY);
         HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
         outBuf_idx = 0;
         
-
         osDelay(LOG_DELAY_LOOPS_MS);
     }
 }
 
 
-void logger_init(USART_TypeDef *p_husart)
+void logger_init(UART_HandleTypeDef *p_husart)
 {
     mp_husart = p_husart;
 

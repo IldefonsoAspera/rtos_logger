@@ -71,7 +71,7 @@ void _log_char(char chr);
 
 
 void logger_thread(void const * argument);
-void logger_init(USART_TypeDef *p_husart);
+void logger_init(UART_HandleTypeDef *p_husart);
 
 
 
