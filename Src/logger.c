@@ -184,6 +184,14 @@ void _log_const_string(const char *string, uint32_t length)
 }
 
 
+void _log_char(char chr)
+{
+    log_fifo_item_t item = {.type = LOG_CHAR, .data = chr};
+    log_fifo_put(&item, &logFifo);
+}
+
+
+
 void logger_thread(void const * argument)
 {
 
@@ -213,6 +221,8 @@ void logger_thread(void const * argument)
             case LOG_HEX_8:
                 proc_hex(item.data, 8);
                 break;
+            case LOG_CHAR:
+                proc_string((char*)&item.data, 1);
             }
         }
 

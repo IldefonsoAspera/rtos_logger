@@ -429,33 +429,33 @@ void entry_demo_th(void const * argument)
 
       log_str("Test\n");
       log_dec(123);
-      log_str("\n");
+      log_char('\n');
       log_dec(12345);
-      log_str("\n");
+      log_char('\n');
       log_dec(1234567890);
-      log_str("\n");
+      log_char('\n');
 
       log_hex((uint8_t)0x12);
-      log_str("\n");
+      log_char('\n');
       log_hex((uint16_t)0x1234);
-      log_str("\n");
+      log_char('\n');
       log_hex((uint32_t)0x123456);
-      log_str("\n");
+      log_char('\n');
       log_hex((uint32_t)0x12345678);
-      log_str("\n");
+      log_char('\n');
 
       log_dec(-123);
-      log_str("\n");
+      log_char('\n');
       log_dec(-12345);
-      log_str("\n");
+      log_char('\n');
       log_dec(-1234567890);
-      log_str("\n");
+      log_char('\n');
 
       logc_str(1, "Conditional positive\n");
       logc_dec(1, (uint8_t)123);
-      log_str("\n");
+      log_char('\n');
       logc_hex(1, (uint8_t)0x12);
-      log_str("\n");
+      log_char('\n');
       logc_dec(0, (uint8_t)88);
       logc_hex(0, (uint8_t)0x77);
       logc_str(1, "Conditional positive\n");

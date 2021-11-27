@@ -25,10 +25,13 @@ enum log_data_type {
     LOG_HEX_2,
     LOG_HEX_4,
     LOG_HEX_8,
+    LOG_CHAR
 };
 
 
 #define log_str(str)    _log_const_string(str, strlen(str))
+
+#define log_char(chr)    _log_char(chr)
 
 
 #define log_dec(number) _log_var((uint32_t)number, _Generic((number),                  \
@@ -63,6 +66,7 @@ enum log_data_type {
 
 void _log_var(uint32_t number, enum log_data_type type);
 void _log_const_string(const char *string, uint32_t length);
+void _log_char(char chr);
 
 
 
