@@ -49,7 +49,6 @@ static inline void log_fifo_put(log_fifo_item_t *pItem, log_fifo_t *pFifo)
     primask_bit = __get_PRIMASK();
     __disable_irq();
 
-    // Queue is full if item counter equals buffer capacity
     if(pFifo->nItems < LOG_ARRAY_N_ELEM(pFifo->buffer))
     {
         pFifo->buffer[pFifo->wrIdx++] = *pItem;
@@ -191,40 +190,45 @@ void _log_char(char chr)
 }
 
 
+void log_flush(void)
+{
+    log_fifo_item_t item;
+
+    while(log_fifo_get(&item, &logFifo))
+    {
+        switch(item.type)
+        {
+        case LOG_STRING:
+            proc_string((char*)item.data, item.str_len);
+            break;
+        case LOG_UINT_DEC:
+            proc_uint_dec(item.data);
+            break;
+        case LOG_INT_DEC:
+            proc_sint_dec((int32_t)item.data);
+            break;
+        case LOG_HEX_2:
+            proc_hex(item.data, 2);
+            break;
+        case LOG_HEX_4:
+            proc_hex(item.data, 4);
+            break;
+        case LOG_HEX_8:
+            proc_hex(item.data, 8);
+            break;
+        case LOG_CHAR:
+            proc_string((char*)&item.data, 1);
+        }
+    }
+}
+
 
 void logger_thread(void const * argument)
 {
 
     while(1)
     {
-        log_fifo_item_t item;
-
-        while(log_fifo_get(&item, &logFifo))
-        {
-            switch(item.type)
-            {
-            case LOG_STRING:
-                proc_string((char*)item.data, item.str_len);
-                break;
-            case LOG_UINT_DEC:
-                proc_uint_dec(item.data);
-                break;
-            case LOG_INT_DEC:
-                proc_sint_dec((int32_t)item.data);
-                break;
-            case LOG_HEX_2:
-                proc_hex(item.data, 2);
-                break;
-            case LOG_HEX_4:
-                proc_hex(item.data, 4);
-                break;
-            case LOG_HEX_8:
-                proc_hex(item.data, 8);
-                break;
-            case LOG_CHAR:
-                proc_string((char*)&item.data, 1);
-            }
-        }
+        log_flush();
 
         HAL_UART_Transmit(mp_husart, (uint8_t*)out_buf, outBuf_idx, HAL_MAX_DELAY);
         HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);

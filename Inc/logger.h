@@ -69,7 +69,7 @@ void _log_const_string(const char *string, uint32_t length);
 void _log_char(char chr);
 
 
-
+void log_flush(void);
 void logger_thread(void const * argument);
 void logger_init(UART_HandleTypeDef *p_husart);
 
