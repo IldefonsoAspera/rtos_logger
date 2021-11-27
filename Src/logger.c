@@ -9,18 +9,12 @@
 #include "cmsis_os.h"
 
 
-#define LOG_INPUT_FIFO_N_ELEM   128
-#define LOG_OUTPUT_BUFFER_SIZE  512
+#define LOG_INPUT_FIFO_N_ELEM   128     // In number of elements (const strings, variables, etc)
+#define LOG_OUTPUT_BUFFER_SIZE  512     // In bytes
 #define LOG_DELAY_LOOPS_MS      100     // Delay between log thread pollings to check if input queue contains data
 
-static USART_TypeDef *mp_husart = NULL;
+#define LOG_ARRAY_N_ELEM(x)     (sizeof(x)/sizeof((x)[0]))
 
-static char out_buf[LOG_OUTPUT_BUFFER_SIZE];
-static uint32_t outBuf_idx = 0;
-
-
-
-//      FIFO
 
 typedef struct log_fifo_item_s
 {
@@ -39,34 +33,35 @@ typedef struct log_fifo_s
 } log_fifo_t;
 
 
+
+static USART_TypeDef *mp_husart = NULL;
+
+static char out_buf[LOG_OUTPUT_BUFFER_SIZE];
+static uint32_t outBuf_idx = 0;
 static log_fifo_t logFifo;
 
 
 
-static bool log_fifo_put(log_fifo_item_t *pItem, log_fifo_t *pFifo)
+static inline void log_fifo_put(log_fifo_item_t *pItem, log_fifo_t *pFifo)
 {
-    bool retVal = false;
     uint32_t primask_bit;
 
     primask_bit = __get_PRIMASK();
     __disable_irq();
 
-    // Queue is not full if read and write indices are different or, 
-    // if having the same value, the item counter is 0
-    if(pFifo->wrIdx != pFifo->rdIdx || !pFifo->nItems)
+    // Queue is full if item counter equals buffer capacity
+    if(pFifo->nItems < LOG_ARRAY_N_ELEM(pFifo->buffer))
     {
-        pFifo->buffer[pFifo->wrIdx] = *pItem;
-        pFifo->wrIdx = (pFifo->wrIdx + 1) & (LOG_INPUT_FIFO_N_ELEM - 1);
+        pFifo->buffer[pFifo->wrIdx++] = *pItem;
+        pFifo->wrIdx &= LOG_INPUT_FIFO_N_ELEM - 1;
         pFifo->nItems++;
-        retVal = true;    
     }
 
     __set_PRIMASK(primask_bit);
-    return retVal;
 }
 
 
-static bool log_fifo_get(log_fifo_item_t *pItem, log_fifo_t *pFifo)
+static inline bool log_fifo_get(log_fifo_item_t *pItem, log_fifo_t *pFifo)
 {
     bool retVal = false;
     uint32_t primask_bit;
@@ -74,12 +69,10 @@ static bool log_fifo_get(log_fifo_item_t *pItem, log_fifo_t *pFifo)
     primask_bit = __get_PRIMASK();
     __disable_irq();
 
-    // Queue is not empty if read and write indices are different or,
-    // if having the same value, the item counter is not 0
-    if(pFifo->rdIdx != pFifo->wrIdx || pFifo->nItems)
+    if(pFifo->nItems)
     {
-        *pItem = pFifo->buffer[pFifo->rdIdx];
-        pFifo->rdIdx = (pFifo->rdIdx + 1) & (LOG_INPUT_FIFO_N_ELEM - 1);
+        *pItem = pFifo->buffer[pFifo->rdIdx++];
+        pFifo->rdIdx &= LOG_INPUT_FIFO_N_ELEM - 1;
         pFifo->nItems--;
         retVal = true;
     }
@@ -95,10 +88,6 @@ static void log_fifo_reset(log_fifo_t *pFifo)
     pFifo->wrIdx  = 0;
     pFifo->nItems = 0;
 }
-
-
-//      /FIFO
-
 
 
 static inline uint8_t process_number_decimal(uint32_t number, char *output)
