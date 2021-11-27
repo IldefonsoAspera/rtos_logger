@@ -3,31 +3,102 @@
 
 #include <string.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "main.h"
 #include "cmsis_os.h"
 
 
-
-#define LOG_INPUT_QUEUE_SIZE    128
+#define LOG_INPUT_FIFO_N_ELEM   128
 #define LOG_OUTPUT_BUFFER_SIZE  512
+#define LOG_DELAY_LOOPS_MS      100     // Delay between log thread pollings to check if input queue contains data
 
-struct queue_item
+static USART_TypeDef *mp_husart = NULL;
+
+static char out_buf[LOG_OUTPUT_BUFFER_SIZE];
+static uint32_t outBuf_idx = 0;
+
+
+
+//      FIFO
+
+typedef struct log_fifo_item_s
 {
     uint32_t           data;
     uint16_t           str_len;
     enum log_data_type type;
-};
+} log_fifo_item_t;
 
 
-static USART_TypeDef *mp_husart = NULL;
+typedef struct log_fifo_s
+{
+    log_fifo_item_t buffer[LOG_INPUT_FIFO_N_ELEM];
+    uint32_t wrIdx;
+    uint32_t rdIdx;
+    uint32_t nItems;
+} log_fifo_t;
 
-static QueueHandle_t qInput;
-static StaticQueue_t qInputStatic;
-static uint8_t qInputBuffer[LOG_INPUT_QUEUE_SIZE * sizeof(struct queue_item)];
 
-static char out_buf[LOG_OUTPUT_BUFFER_SIZE];
-static uint32_t outBuf_idx = 0;
+static log_fifo_t logFifo;
+
+
+
+static bool log_fifo_put(log_fifo_item_t *pItem, log_fifo_t *pFifo)
+{
+    bool retVal = false;
+    uint32_t primask_bit;
+
+    primask_bit = __get_PRIMASK();
+    __disable_irq();
+
+    // Queue is not full if read and write indices are different or, 
+    // if having the same value, the item counter is 0
+    if(pFifo->wrIdx != pFifo->rdIdx || !pFifo->nItems)
+    {
+        pFifo->buffer[pFifo->wrIdx] = *pItem;
+        pFifo->wrIdx = (pFifo->wrIdx + 1) & (LOG_INPUT_FIFO_N_ELEM - 1);
+        pFifo->nItems++;
+        retVal = true;    
+    }
+
+    __set_PRIMASK(primask_bit);
+    return retVal;
+}
+
+
+static bool log_fifo_get(log_fifo_item_t *pItem, log_fifo_t *pFifo)
+{
+    bool retVal = false;
+    uint32_t primask_bit;
+
+    primask_bit = __get_PRIMASK();
+    __disable_irq();
+
+    // Queue is not empty if read and write indices are different or,
+    // if having the same value, the item counter is not 0
+    if(pFifo->rdIdx != pFifo->wrIdx || pFifo->nItems)
+    {
+        *pItem = pFifo->buffer[pFifo->rdIdx];
+        pFifo->rdIdx = (pFifo->rdIdx + 1) & (LOG_INPUT_FIFO_N_ELEM - 1);
+        pFifo->nItems--;
+        retVal = true;
+    }
+
+    __set_PRIMASK(primask_bit);
+    return retVal;
+}
+
+
+static void log_fifo_reset(log_fifo_t *pFifo)
+{
+    pFifo->rdIdx  = 0;
+    pFifo->wrIdx  = 0;
+    pFifo->nItems = 0;
+}
+
+
+//      /FIFO
+
 
 
 static inline uint8_t process_number_decimal(uint32_t number, char *output)
@@ -110,30 +181,17 @@ static void proc_sint_dec(int32_t number)
 }
 
 
-static bool isInterrupt()
-{
-    return (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0 ;
-}
-
-
 void _log_var(uint32_t number, enum log_data_type type)
 {
-    struct queue_item item = {.type = type, .data = number};
-
-    if(isInterrupt())
-        xQueueSendToBackFromISR(qInput, &item, NULL);
-    else
-        xQueueSendToBack(qInput, &item, 0);
+    log_fifo_item_t item = {.type = type, .data = number};
+    log_fifo_put(&item, &logFifo);
 }
 
 
 void _log_const_string(const char *string, uint32_t length)
 {
-    struct queue_item item = {.type = LOG_STRING, .data = (uint32_t)string, .str_len = length};
-    if(isInterrupt())
-        xQueueSendToBackFromISR(qInput, &item, NULL);
-    else
-        xQueueSendToBack(qInput, &item, 0);
+    log_fifo_item_t item = {.type = LOG_STRING, .data = (uint32_t)string, .str_len = length};
+    log_fifo_put(&item, &logFifo);
 }
 
 
@@ -142,9 +200,9 @@ void logger_thread(void const * argument)
 
     while(1)
     {
-        struct queue_item item;
+        log_fifo_item_t item;
 
-        if(xQueueReceive(qInput, &item, portMAX_DELAY))
+        while(log_fifo_get(&item, &logFifo))
         {
             switch(item.type)
             {
@@ -169,17 +227,16 @@ void logger_thread(void const * argument)
             }
         }
 
-        if(!uxQueueMessagesWaiting(qInput))
+        for(int idx = 0; idx < outBuf_idx; idx++)
         {
-            uint32_t idx;
-            for(idx = 0; idx < outBuf_idx; idx++)
-            {
-                LL_USART_TransmitData8(USART2, out_buf[idx]);
-                while(!LL_USART_IsActiveFlag_TC(USART2));
-            }
-            HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-            outBuf_idx = 0;
+            LL_USART_TransmitData8(USART2, out_buf[idx]);
+            while(!LL_USART_IsActiveFlag_TC(USART2));
         }
+        HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+        outBuf_idx = 0;
+        
+
+        osDelay(LOG_DELAY_LOOPS_MS);
     }
 }
 
@@ -187,5 +244,7 @@ void logger_thread(void const * argument)
 void logger_init(USART_TypeDef *p_husart)
 {
     mp_husart = p_husart;
-    qInput   = xQueueCreateStatic(LOG_INPUT_QUEUE_SIZE, sizeof(struct queue_item), qInputBuffer, &qInputStatic);
+
+    static_assert(!(LOG_INPUT_FIFO_N_ELEM & (LOG_INPUT_FIFO_N_ELEM - 1)), "Log input queue must be power of 2");
+    log_fifo_reset(&logFifo);
 }
