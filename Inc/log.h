@@ -103,16 +103,8 @@ void _log_char(char chr,       enum log_color color);
 
 
 void log_flush(void);
-void logger_thread(void const * argument);
-void logger_init(UART_HandleTypeDef *p_husart);
-
-
-//#define log_str(str, color)    _log_const_string(LOG_ANSI_PREFIX color LOG_ANSI_SUFFIX str, strlen(LOG_ANSI_PREFIX color LOG_ANSI_SUFFIX str))
-/*#if LOG_SUPPORT_ANSI_COLOR
-#define log_str(str, ...)    _log_const_string(str, strlen(str) __VA_OPT__(,) __VA_ARGS__)
-#else
-#define log_str(str, ...)    _log_const_string(str, strlen(str) __VA_OPT__(,) __VA_ARGS__)
-#endif*/
+void log_thread(void const * argument);
+void log_init(UART_HandleTypeDef *p_husart);
 
 
 

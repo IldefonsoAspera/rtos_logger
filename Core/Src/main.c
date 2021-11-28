@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "logger.h"
+#include "log.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,9 +45,9 @@ TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart2;
 
-osThreadId logger_thHandle;
-uint32_t logger_th_buffer[ 256 ];
-osStaticThreadDef_t logger_th_cb;
+osThreadId log_thHandle;
+uint32_t log_th_buffer[ 256 ];
+osStaticThreadDef_t log_th_cb;
 osThreadId demo_thHandle;
 uint32_t demo_th_buffer[ 128 ];
 osStaticThreadDef_t demo_th_cb;
@@ -59,7 +59,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
-void entry_logger_thread(void const * argument);
+void entry_log_thread(void const * argument);
 void entry_demo_th(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -122,16 +122,16 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of logger_th */
-  osThreadStaticDef(logger_th, entry_logger_thread, osPriorityIdle, 0, 256, logger_th_buffer, &logger_th_cb);
-  logger_thHandle = osThreadCreate(osThread(logger_th), NULL);
+  /* definition and creation of log_th */
+  osThreadStaticDef(log_th, entry_log_thread, osPriorityIdle, 0, 256, log_th_buffer, &log_th_cb);
+  log_thHandle = osThreadCreate(osThread(log_th), NULL);
 
   /* definition and creation of demo_th */
   osThreadStaticDef(demo_th, entry_demo_th, osPriorityNormal, 0, 128, demo_th_buffer, &demo_th_cb);
   demo_thHandle = osThreadCreate(osThread(demo_th), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  logger_init(&huart2);
+  log_init(&huart2);
 
   /* USER CODE END RTOS_THREADS */
 
@@ -372,17 +372,17 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_entry_logger_thread */
+/* USER CODE BEGIN Header_entry_log_thread */
 /**
-  * @brief  Function implementing the logger_th thread.
+  * @brief  Function implementing the log_th thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_entry_logger_thread */
-void entry_logger_thread(void const * argument)
+/* USER CODE END Header_entry_log_thread */
+void entry_log_thread(void const * argument)
 {
   /* USER CODE BEGIN 5 */
-  logger_thread(argument);
+  log_thread(argument);
   /* USER CODE END 5 */
 }
 

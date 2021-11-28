@@ -1,9 +1,8 @@
 
-#include "logger.h"
-
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <log.h>
 
 #include "main.h"
 #include "cmsis_os.h"
@@ -293,7 +292,7 @@ void log_flush(void)
 }
 
 
-void logger_thread(void const * argument)
+void log_thread(void const * argument)
 {
 
     while(1)
@@ -309,7 +308,7 @@ void logger_thread(void const * argument)
 }
 
 
-void logger_init(UART_HandleTypeDef *p_husart)
+void log_init(UART_HandleTypeDef *p_husart)
 {
     mp_husart = p_husart;
 
