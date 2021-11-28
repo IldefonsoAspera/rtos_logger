@@ -2,7 +2,7 @@
 FREERTOS.FootprintOK=true
 FREERTOS.IPParameters=Tasks01,MEMORY_ALLOCATION,FootprintOK,configENABLE_BACKWARD_COMPATIBILITY,configRECORD_STACK_HIGH_ADDRESS
 FREERTOS.MEMORY_ALLOCATION=1
-FREERTOS.Tasks01=logger_th,-3,256,entry_logger_thread,Default,NULL,Static,logger_th_buffer,logger_th_cb;demo_th,0,128,entry_demo_th,Default,NULL,Static,demo_th_buffer,demo_th_cb
+FREERTOS.Tasks01=logger_th,-2,256,entry_logger_thread,Default,NULL,Static,logger_th_buffer,logger_th_cb;demo_th,0,128,entry_demo_th,Default,NULL,Static,demo_th_buffer,demo_th_cb;vcp_th,-3,128,entry_vcp_th,Default,NULL,Static,vcpThBuffer,vcpThCb
 FREERTOS.configENABLE_BACKWARD_COMPATIBILITY=0
 FREERTOS.configRECORD_STACK_HIGH_ADDRESS=1
 File.Version=6

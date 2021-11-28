@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "log.h"
+#include "vcp.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,12 +46,15 @@ TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart2;
 
-osThreadId log_thHandle;
-uint32_t log_th_buffer[ 256 ];
-osStaticThreadDef_t log_th_cb;
+osThreadId logger_thHandle;
+uint32_t logger_th_buffer[ 256 ];
+osStaticThreadDef_t logger_th_cb;
 osThreadId demo_thHandle;
 uint32_t demo_th_buffer[ 128 ];
 osStaticThreadDef_t demo_th_cb;
+osThreadId vcp_thHandle;
+uint32_t vcpThBuffer[ 128 ];
+osStaticThreadDef_t vcpThCb;
 /* USER CODE BEGIN PV */
 /* USER CODE END PV */
 
@@ -59,8 +63,9 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
-void entry_log_thread(void const * argument);
+void entry_logger_thread(void const * argument);
 void entry_demo_th(void const * argument);
+void entry_vcp_th(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -122,16 +127,21 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of log_th */
-  osThreadStaticDef(log_th, entry_log_thread, osPriorityIdle, 0, 256, log_th_buffer, &log_th_cb);
-  log_thHandle = osThreadCreate(osThread(log_th), NULL);
+  /* definition and creation of logger_th */
+  osThreadStaticDef(logger_th, entry_logger_thread, osPriorityLow, 0, 256, logger_th_buffer, &logger_th_cb);
+  logger_thHandle = osThreadCreate(osThread(logger_th), NULL);
 
   /* definition and creation of demo_th */
   osThreadStaticDef(demo_th, entry_demo_th, osPriorityNormal, 0, 128, demo_th_buffer, &demo_th_cb);
   demo_thHandle = osThreadCreate(osThread(demo_th), NULL);
 
+  /* definition and creation of vcp_th */
+  osThreadStaticDef(vcp_th, entry_vcp_th, osPriorityIdle, 0, 128, vcpThBuffer, &vcpThCb);
+  vcp_thHandle = osThreadCreate(osThread(vcp_th), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
-  log_init(&huart2);
+  vcp_init(&huart2);
+  log_init();
 
   /* USER CODE END RTOS_THREADS */
 
@@ -372,14 +382,14 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_entry_log_thread */
+/* USER CODE BEGIN Header_entry_logger_thread */
 /**
-  * @brief  Function implementing the log_th thread.
+  * @brief  Function implementing the logger_th thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_entry_log_thread */
-void entry_log_thread(void const * argument)
+/* USER CODE END Header_entry_logger_thread */
+void entry_logger_thread(void const * argument)
 {
   /* USER CODE BEGIN 5 */
   log_thread(argument);
@@ -443,7 +453,7 @@ void entry_demo_th(void const * argument)
       log_char('\r');
       log_char('\n');
 
-      //logc_str(1, "Conditional positive\n");
+      logc_str(1, "Conditional positive\r\n");
       logc_dec(1, (uint8_t)123);
       log_char('\r');
       log_char('\n');
@@ -452,21 +462,28 @@ void entry_demo_th(void const * argument)
       log_char('\n');
       logc_dec(0, (uint8_t)88);
       logc_hex(0, (uint8_t)0x77);
-      //logc_str(1, "Conditional positive\n");
-      //logc_str(0, "Conditional positive\n");
+      logc_str(1, "Conditional positive\r\n");
+      logc_str(0, "Conditional positive\r\n");
+      log_char('\r');
+      log_char('\n');
 
-//      exec_time = 0;
-//      __HAL_TIM_SET_COUNTER(&htim2, 0);
-//      log_hex((uint32_t)123456);
-//      exec_time = __HAL_TIM_GET_COUNTER(&htim2);
-//
-//      int i;
-//      for(i=0; i<100; i++)
-//          log_str("Test\n");
-
-    osDelay(500);
+      osDelay(500);
   }
   /* USER CODE END entry_demo_th */
+}
+
+/* USER CODE BEGIN Header_entry_vcp_th */
+/**
+* @brief Function implementing the vcp_th thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_entry_vcp_th */
+void entry_vcp_th(void const * argument)
+{
+  /* USER CODE BEGIN entry_vcp_th */
+  vcp_th(argument);
+  /* USER CODE END entry_vcp_th */
 }
 
 /**

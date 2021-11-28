@@ -1,16 +1,15 @@
 
+#include "log.h"
+
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <log.h>
 
 #include "main.h"
 #include "cmsis_os.h"
+#include "vcp.h"
 
 
-#define LOG_INPUT_FIFO_N_ELEM   128     // In number of elements (const strings, variables, etc)
-#define LOG_OUTPUT_BUFFER_SIZE  512     // In bytes
-#define LOG_DELAY_LOOPS_MS      100     // Delay between log thread pollings to check if input queue contains data
 
 #define LOG_ARRAY_N_ELEM(x)     (sizeof(x)/sizeof((x)[0]))
 
@@ -18,15 +17,6 @@
 #if LOG_SUPPORT_ANSI_COLOR
 #define LOG_ANSI_PREFIX         "\x1B["
 #define LOG_ANSI_SUFFIX         'm'
-#define LOG_ANSI_COLOR_DEFAULT  "0"
-#define LOG_ANSI_COLOR_BLACK    "30"
-#define LOG_ANSI_COLOR_RED      "31"
-#define LOG_ANSI_COLOR_GREEN    "32"
-#define LOG_ANSI_COLOR_YELLOW   "33"
-#define LOG_ANSI_COLOR_BLUE     "34"
-#define LOG_ANSI_COLOR_MAGENTA  "35"
-#define LOG_ANSI_COLOR_CYAN     "36"
-#define LOG_ANSI_COLOR_WHITE    "37"
 
 static char ansi_colors[_LOG_COLOR_LEN][2] = {
     {'0', ' '},
@@ -40,8 +30,6 @@ static char ansi_colors[_LOG_COLOR_LEN][2] = {
     {'3', '7'},
 };
 #endif
-
-
 
 
 typedef struct log_fifo_item_s
@@ -65,12 +53,6 @@ typedef struct log_fifo_s
 
 
 
-
-
-static UART_HandleTypeDef *mp_husart = NULL;
-
-static char out_buf[LOG_OUTPUT_BUFFER_SIZE];
-static uint32_t outBuf_idx = 0;
 static log_fifo_t logFifo;
 
 
@@ -163,14 +145,20 @@ static void set_color(enum log_color color)
 {
     if(color != LOG_COLOR_NONE)
     {
-        out_buf[outBuf_idx++] = '\x1B';
-        out_buf[outBuf_idx++] = '[';
-        out_buf[outBuf_idx++] = ansi_colors[color][0];
-        
-        if(color != LOG_COLOR_DEFAULT)
-            out_buf[outBuf_idx++] = ansi_colors[color][1];
+        char str[5] = LOG_ANSI_PREFIX;
 
-        out_buf[outBuf_idx++] = LOG_ANSI_SUFFIX;
+        str[2] = ansi_colors[color][0];
+        if(color != LOG_COLOR_DEFAULT)
+        {
+            str[3] = ansi_colors[color][1];
+            str[4] = LOG_ANSI_SUFFIX;
+            vcp_send(str, 5);
+        }
+        else
+        {
+            str[3] = LOG_ANSI_SUFFIX;
+            vcp_send(str, 4);
+        }
     }
 }
 #endif
@@ -178,8 +166,7 @@ static void set_color(enum log_color color)
 
 static void proc_string(char *string, uint32_t length)
 {
-    while(length--)
-        out_buf[outBuf_idx++] = *string++;
+    vcp_send(string, length);
 }
 
 
@@ -298,20 +285,13 @@ void log_thread(void const * argument)
     while(1)
     {
         log_flush();
-
-        HAL_UART_Transmit(mp_husart, (uint8_t*)out_buf, outBuf_idx, HAL_MAX_DELAY);
-        HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-        outBuf_idx = 0;
-        
         osDelay(LOG_DELAY_LOOPS_MS);
     }
 }
 
 
-void log_init(UART_HandleTypeDef *p_husart)
+void log_init(void)
 {
-    mp_husart = p_husart;
-
     static_assert(!(LOG_INPUT_FIFO_N_ELEM & (LOG_INPUT_FIFO_N_ELEM - 1)), "Log input queue must be power of 2");
     log_fifo_reset(&logFifo);
 }
