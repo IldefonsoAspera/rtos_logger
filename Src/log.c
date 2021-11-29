@@ -135,27 +135,27 @@ static void process_string(char *string, uint32_t length)
 }
 
 
-static void process_hexadecimal(uint32_t number, uint8_t n_digits)
+static void process_hexadecimal(uint32_t number, uint8_t nDigits)
 {
     const char hexVals[16] = {'0','1','2','3','4','5','6','7',
                               '8','9','A','B','C','D','E','F'};
-    char output[n_digits];
+    char output[nDigits];
     int8_t i;
 
     // Fill char array starting at the end
-    for(i = n_digits-1 ; i > -1; i--)
+    for(i = nDigits-1 ; i > -1; i--)
     {
         output[i] = hexVals[number & 0x0F];
         number >>= 4;
     }
 
-    proc_string(output, n_digits);
+    process_string(output, nDigits);
 }
 
 
 static void process_decimal(uint32_t number, bool isNegative)
 {
-    char* output[11];
+    char output[11];
     uint32_t divider = 1000000000UL;
     uint8_t i = 0;
 
@@ -177,7 +177,7 @@ static void process_decimal(uint32_t number, bool isNegative)
     else
         output[i++] = '0';
 
-    proc_string(output, i);
+    process_string(output, i);
 }
 
 
@@ -232,7 +232,7 @@ void log_flush(void)
         switch(item.type)
         {
         case LOG_STRING:
-            proc_string((char*)item.data, item.str_len);
+            process_string((char*)item.data, item.str_len);
             break;
         case LOG_UINT_DEC:
             process_decimal(item.data, false);
