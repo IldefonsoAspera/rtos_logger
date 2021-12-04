@@ -6,10 +6,13 @@
 extern "C" {
 #endif
 
-// Eclipse CDT parser does not support C11, so suppress
-// warning when parsing but not when compiling
+// Eclipse CDT parser does not support C11, so suppress warning when parsing but not when compiling
+// Also suppress syntax error for conditional logs
 #ifdef __CDT_PARSER__
     #define _Generic(...) 0
+    #define logc_str(cond, string, ...)  0
+    #define logc_dec(cond, number, ...)  0
+    #define logc_hex(cond, number, ...)  0
 #endif
 
 
@@ -20,9 +23,8 @@ extern "C" {
 
 /*********************** User configurable definitions ***********************/
 
-#define LOG_INPUT_FIFO_N_ELEM   128     // In number of elements (const strings, variables, etc)
+#define LOG_INPUT_FIFO_N_ELEM   128     // Defines log input FIFO size in number of elements (const strings, variables, etc)
 #define LOG_DELAY_LOOPS_MS      100     // Delay between log thread pollings to check if input queue contains data
-
 #define LOG_SUPPORT_ANSI_COLOR  1       // Activating colors increase element size
 
 /*****************************************************************************/
@@ -132,10 +134,17 @@ enum log_color {
                                                             signed int:     LOG_HEX_8), (color))
 
 
-
+#ifndef logc_str
 #define logc_str(cond, string, ...)  do{ if(cond){ log_str((string) __VA_OPT__(,) __VA_ARGS__); } } while(0)
+#endif
+
+#ifndef logc_dec
 #define logc_dec(cond, number, ...)  do{ if(cond){ log_dec((number) __VA_OPT__(,) __VA_ARGS__); } } while(0)
+#endif
+
+#ifndef logc_hex
 #define logc_hex(cond, number, ...)  do{ if(cond){ log_hex((number) __VA_OPT__(,) __VA_ARGS__); } } while(0)
+#endif
 
 
 void _log_var(uint32_t number, enum log_data_type type, enum log_color color);

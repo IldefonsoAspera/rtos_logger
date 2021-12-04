@@ -18,7 +18,7 @@
 #define LOG_ANSI_PREFIX         "\x1B["
 #define LOG_ANSI_SUFFIX         'm'
 
-static char ansi_colors[_LOG_COLOR_LEN][2] = {
+static char ansiColors[_LOG_COLOR_LEN][2] = {
     {'0', ' '},
     {'3', '0'},
     {'3', '1'},
@@ -43,7 +43,7 @@ typedef struct log_fifo_item_s
     };
     union
     {
-        uint16_t str_len;
+        uint16_t strLen;
         uint8_t  nChars;
     };
     enum log_data_type type;
@@ -69,9 +69,9 @@ static log_fifo_t logFifo;
 
 static inline void log_fifo_put(log_fifo_item_t *pItem, log_fifo_t *pFifo)
 {
-    uint32_t primask_bit;
+    uint32_t primaskBit;
 
-    primask_bit = __get_PRIMASK();
+    primaskBit = __get_PRIMASK();
     __disable_irq();
 
     if(pFifo->nItems < LOG_ARRAY_N_ELEM(pFifo->buffer))
@@ -81,16 +81,16 @@ static inline void log_fifo_put(log_fifo_item_t *pItem, log_fifo_t *pFifo)
         pFifo->nItems++;
     }
 
-    __set_PRIMASK(primask_bit);
+    __set_PRIMASK(primaskBit);
 }
 
 
 static inline bool log_fifo_get(log_fifo_item_t *pItem, log_fifo_t *pFifo)
 {
     bool retVal = false;
-    uint32_t primask_bit;
+    uint32_t primaskBit;
 
-    primask_bit = __get_PRIMASK();
+    primaskBit = __get_PRIMASK();
     __disable_irq();
 
     if(pFifo->nItems)
@@ -101,7 +101,7 @@ static inline bool log_fifo_get(log_fifo_item_t *pItem, log_fifo_t *pFifo)
         retVal = true;
     }
 
-    __set_PRIMASK(primask_bit);
+    __set_PRIMASK(primaskBit);
     return retVal;
 }
 
@@ -122,10 +122,10 @@ static void set_color(enum log_color color)
     {
         char str[5] = LOG_ANSI_PREFIX;
 
-        str[2] = ansi_colors[color][0];
+        str[2] = ansiColors[color][0];
         if(color != LOG_COLOR_DEFAULT)
         {
-            str[3] = ansi_colors[color][1];
+            str[3] = ansiColors[color][1];
             str[4] = LOG_ANSI_SUFFIX;
             vcp_send(str, 5);
         }
@@ -201,7 +201,7 @@ void _log_var(uint32_t number, enum log_data_type type, enum log_color color)
 
 void _log_str(char *string, uint32_t length, enum log_color color)
 {
-    log_fifo_item_t item = {.type = LOG_STRING, .str = string, .str_len = length};
+    log_fifo_item_t item = {.type = LOG_STRING, .str = string, .strLen = length};
 
 #if LOG_SUPPORT_ANSI_COLOR
         item.color = color;
@@ -225,7 +225,7 @@ void _log_char(char chr, enum log_color color)
 
 void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, enum log_color color)
 {
-    uint8_t* pData = (uint8_t*) pArray;
+    uint8_t *pData = (uint8_t*) pArray;
     uint32_t offset = 0;
     uint32_t value;
 
@@ -261,7 +261,7 @@ void log_flush(void)
         switch(item.type)
         {
         case LOG_STRING:
-            process_string(item.str, item.str_len);
+            process_string(item.str, item.strLen);
             break;
         case LOG_UINT_DEC:
             process_decimal(item.uData, false);
