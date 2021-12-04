@@ -425,8 +425,8 @@ void entry_demo_th(void const * argument)
 
       (void)exec_time;
 
-      log_str("Test\r\n");
-      log_str("Tst0\r\n");
+      log_str("Test start\r\n");
+      log_str("Tst0 \r\n");
       log_str("Tst1\r\n", LOG_COLOR_RED);
       log_str("Tst2\r\n", LOG_COLOR_BLUE);
       log_str("Tst2\r\n", LOG_COLOR_DEFAULT);
@@ -498,7 +498,7 @@ void entry_demo_th(void const * argument)
       log_char('\r');
       log_char('\n');
 
-      logc_str(1, "Conditional positive\r\n");
+      logc_str(1, "Conditional positive\r\n", LOG_COLOR_DEFAULT);
       logc_dec(1, (uint8_t)123);
       log_char('\r');
       log_char('\n');

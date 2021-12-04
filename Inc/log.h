@@ -6,13 +6,10 @@
 extern "C" {
 #endif
 
-// Eclipse CDT parser does not support C11, so suppress warning when parsing but not when compiling
-// Also suppress syntax error for conditional logs
+// Eclipse CDT parser does not support C11, so suppress 
+// warning when parsing but not when compiling
 #ifdef __CDT_PARSER__
     #define _Generic(...) 0
-    #define logc_str(cond, string, ...)  0
-    #define logc_dec(cond, number, ...)  0
-    #define logc_hex(cond, number, ...)  0
 #endif
 
 
@@ -134,15 +131,14 @@ enum log_color {
                                                             signed int:     LOG_HEX_8), (color))
 
 
-#ifndef logc_str
+// Suppress syntax error for conditional logs when parsing with IntelliSense or CDT parser
+#if defined(__INTELLISENSE__) || defined(__CDT_PARSER__)
+#define logc_str(cond, string, ...)  0
+#define logc_dec(cond, number, ...)  0
+#define logc_hex(cond, number, ...)  0
+#else
 #define logc_str(cond, string, ...)  do{ if(cond){ log_str((string) __VA_OPT__(,) __VA_ARGS__); } } while(0)
-#endif
-
-#ifndef logc_dec
 #define logc_dec(cond, number, ...)  do{ if(cond){ log_dec((number) __VA_OPT__(,) __VA_ARGS__); } } while(0)
-#endif
-
-#ifndef logc_hex
 #define logc_hex(cond, number, ...)  do{ if(cond){ log_hex((number) __VA_OPT__(,) __VA_ARGS__); } } while(0)
 #endif
 
