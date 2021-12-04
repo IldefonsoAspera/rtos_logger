@@ -175,7 +175,7 @@ static void process_decimal(uint32_t number, bool isNegative)
     while(number < divider)
         divider /= 10;
 
-    while(number >= 10)
+    while(divider >= 10)
     {
         output[i++] = 0x30 + number/divider;
         number %= divider;
@@ -227,10 +227,18 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
 {
     uint8_t* pData = (uint8_t*) pArray;
     uint32_t offset = 0;
+    uint32_t value;
 
     while(nItems--)
     {
-        _log_var(pData[offset], type, color);
+        if(nBytesPerItem == 4)
+            value = *((uint32_t*)&pData[offset]);
+        else if(nBytesPerItem == 2)
+            value = *((uint16_t*)&pData[offset]);
+        else
+            value = *((uint8_t*)&pData[offset]);
+
+        _log_var(value, type, color);
         offset += nBytesPerItem;
         if(nItems)                      // Skips separator after last array item
             _log_char(' ', color);
@@ -255,9 +263,21 @@ void log_flush(void)
         case LOG_UINT_DEC:
             process_decimal(item.uData, false);
             break;
-        case LOG_INT_DEC:
-            if(item.sData < 0)
-                process_decimal((uint32_t)(-item.sData), true);
+        case LOG_INT_DEC_1:
+            if((int8_t)item.sData < 0)
+                process_decimal((uint32_t)-((int8_t)item.sData), true);
+            else
+                process_decimal(item.uData, false);
+            break;
+        case LOG_INT_DEC_2:
+            if((int16_t)item.sData < 0)
+                process_decimal((uint32_t)-((int16_t)item.sData), true);
+            else
+                process_decimal(item.uData, false);
+            break;
+        case LOG_INT_DEC_4:
+            if((int32_t)item.sData < 0)
+                process_decimal((uint32_t)-((int32_t)item.sData), true);
             else
                 process_decimal(item.uData, false);
             break;

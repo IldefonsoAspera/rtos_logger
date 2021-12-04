@@ -415,8 +415,8 @@ void entry_demo_th(void const * argument)
       uint8_t  array8[4]   = {0, 25, 120, 255};
       uint16_t array16[4]  = {0, 500, 16000, 65000};
       uint32_t array32[4]  = {0, 25000, 150000, 4200230000};
-      int16_t  arrays16[4] = {0, -500, -16000, -32500};
-      int32_t  arrays32[4] = {0, -25000, -150000, -2100230000};
+      int16_t  arrays16[4] = {0, -500, -16000, INT16_MIN};
+      int32_t  arrays32[4] = {0, -25000, -150000, INT32_MIN};
 
       uint8_t  arrayh8[4]   = {0, 25, 120, 255};
       uint16_t arrayh16[4]  = {0, 500, 16000, 65000};
@@ -430,6 +430,34 @@ void entry_demo_th(void const * argument)
       log_str("Tst1\r\n", LOG_COLOR_RED);
       log_str("Tst2\r\n", LOG_COLOR_BLUE);
       log_str("Tst2\r\n", LOG_COLOR_DEFAULT);
+
+      log_array_dec(array8, 4);
+      log_char('\r');
+      log_char('\n');
+      log_array_dec(array16, 4);
+      log_char('\r');
+      log_char('\n');
+      log_array_dec(array32, 4);
+      log_char('\r');
+      log_char('\n');
+      log_array_dec(arrays16, 4);
+      log_char('\r');
+      log_char('\n');
+      log_array_dec(arrays32, 4);
+      log_char('\r');
+      log_char('\n');
+      log_array_hex(arrayh8, 4);
+      log_char('\r');
+      log_char('\n');
+      log_array_hex(arrayh16, 4);
+      log_char('\r');
+      log_char('\n');
+      log_array_hex(arrayh32, 4);
+      log_char('\r');
+      log_char('\n');
+      log_char('\r');
+      log_char('\n');
+
 
       log_dec(0);
       log_char('\r');
@@ -480,34 +508,7 @@ void entry_demo_th(void const * argument)
       logc_dec(0, (uint8_t)88);
       logc_hex(0, (uint8_t)0x77);
       logc_str(1, "Conditional positive\r\n");
-      logc_str(0, "Conditional positive\r\n");
-      log_char('\r');
-      log_char('\n');
-
-      log_array_dec(array8, 4);
-      log_char('\r');
-      log_char('\n');
-      log_array_dec(array16, 4);
-      log_char('\r');
-      log_char('\n');
-      log_array_dec(array32, 4);
-      log_char('\r');
-      log_char('\n');
-      log_array_dec(arrays16, 4);
-      log_char('\r');
-      log_char('\n');
-      log_array_dec(arrays32, 4);
-      log_char('\r');
-      log_char('\n');
-      log_array_hex(arrayh8, 4);
-      log_char('\r');
-      log_char('\n');
-      log_array_hex(arrayh16, 4);
-      log_char('\r');
-      log_char('\n');
-      log_array_hex(arrayh32, 4);
-      log_char('\r');
-      log_char('\n');
+      logc_str(0, "Conditional negative\r\n");
       log_char('\r');
       log_char('\n');
 

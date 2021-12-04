@@ -23,7 +23,7 @@ extern "C" {
 #define LOG_INPUT_FIFO_N_ELEM   128     // In number of elements (const strings, variables, etc)
 #define LOG_DELAY_LOOPS_MS      100     // Delay between log thread pollings to check if input queue contains data
 
-#define LOG_SUPPORT_ANSI_COLOR  1   // Activating colors increase element size
+#define LOG_SUPPORT_ANSI_COLOR  0       // Activating colors increase element size
 
 /*****************************************************************************/
 
@@ -31,7 +31,9 @@ extern "C" {
 enum log_data_type {
     LOG_STRING,
     LOG_UINT_DEC,
-    LOG_INT_DEC,
+    LOG_INT_DEC_1,
+    LOG_INT_DEC_2,
+    LOG_INT_DEC_4,
     LOG_HEX_2,
     LOG_HEX_4,
     LOG_HEX_8,
@@ -85,11 +87,11 @@ enum log_color {
                                                             unsigned short: LOG_UINT_DEC,  \
                                                             unsigned long:  LOG_UINT_DEC,  \
                                                             unsigned int:   LOG_UINT_DEC,  \
-                                                            char:           LOG_INT_DEC,   \
-                                                            signed char:    LOG_INT_DEC,   \
-                                                            signed short:   LOG_INT_DEC,   \
-                                                            signed long:    LOG_INT_DEC,   \
-                                                            signed int:     LOG_INT_DEC), (color))
+                                                            char:           LOG_INT_DEC_1, \
+                                                            signed char:    LOG_INT_DEC_1, \
+                                                            signed short:   LOG_INT_DEC_2, \
+                                                            signed long:    LOG_INT_DEC_4, \
+                                                            signed int:     LOG_INT_DEC_4), (color))
 
 
 #define _log_hex(number, color) _log_var((uint32_t)(number), _Generic((number),         \
@@ -110,11 +112,11 @@ enum log_color {
                                                             unsigned short: LOG_UINT_DEC,  \
                                                             unsigned long:  LOG_UINT_DEC,  \
                                                             unsigned int:   LOG_UINT_DEC,  \
-                                                            char:           LOG_INT_DEC,   \
-                                                            signed char:    LOG_INT_DEC,   \
-                                                            signed short:   LOG_INT_DEC,   \
-                                                            signed long:    LOG_INT_DEC,   \
-                                                            signed int:     LOG_INT_DEC), (color))
+                                                            char:           LOG_INT_DEC_1, \
+                                                            signed char:    LOG_INT_DEC_1, \
+                                                            signed short:   LOG_INT_DEC_2, \
+                                                            signed long:    LOG_INT_DEC_4, \
+                                                            signed int:     LOG_INT_DEC_4), (color))
 
 
 #define _log_array_hex(array, nItems, color)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
