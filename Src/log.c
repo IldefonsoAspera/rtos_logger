@@ -34,7 +34,13 @@ static char ansi_colors[_LOG_COLOR_LEN][2] = {
 
 typedef struct log_fifo_item_s
 {
-    uint32_t           data;
+    union
+    {
+        uint32_t uData;
+        int32_t  sData;
+        char *   str;
+        char     chr;
+    };
     uint16_t           str_len;
     enum log_data_type type;
 #if LOG_SUPPORT_ANSI_COLOR
@@ -186,7 +192,7 @@ static void process_decimal(uint32_t number, bool isNegative)
 
 void _log_var(uint32_t number, enum log_data_type type, enum log_color color)
 {
-    log_fifo_item_t item = {.type = type, .data = number};
+    log_fifo_item_t item = {.type = type, .uData = number};
 
 #if LOG_SUPPORT_ANSI_COLOR
         item.color = color;
@@ -198,7 +204,7 @@ void _log_var(uint32_t number, enum log_data_type type, enum log_color color)
 
 void _log_str(char *string, uint32_t length, enum log_color color)
 {
-    log_fifo_item_t item = {.type = LOG_STRING, .data = (uint32_t)string, .str_len = length};
+    log_fifo_item_t item = {.type = LOG_STRING, .str = string, .str_len = length};
 
 #if LOG_SUPPORT_ANSI_COLOR
         item.color = color;
@@ -210,7 +216,7 @@ void _log_str(char *string, uint32_t length, enum log_color color)
 
 void _log_char(char chr, enum log_color color)
 {
-    log_fifo_item_t item = {.type = LOG_CHAR, .data = chr};
+    log_fifo_item_t item = {.type = LOG_CHAR, .chr = chr};
 
 #if LOG_SUPPORT_ANSI_COLOR
         item.color = color;
@@ -232,28 +238,28 @@ void log_flush(void)
         switch(item.type)
         {
         case LOG_STRING:
-            process_string((char*)item.data, item.str_len);
+            process_string(item.str, item.str_len);
             break;
         case LOG_UINT_DEC:
-            process_decimal(item.data, false);
+            process_decimal(item.uData, false);
             break;
         case LOG_INT_DEC:
-            if((int32_t)item.data < 0)
-                process_decimal((uint32_t)(-((int32_t)item.data)), true);
+            if(item.sData < 0)
+                process_decimal((uint32_t)(-item.sData), true);
             else
-                process_decimal(item.data, false);
+                process_decimal(item.uData, false);
             break;
         case LOG_HEX_2:
-            process_hexadecimal(item.data, 2);
+            process_hexadecimal(item.uData, 2);
             break;
         case LOG_HEX_4:
-            process_hexadecimal(item.data, 4);
+            process_hexadecimal(item.uData, 4);
             break;
         case LOG_HEX_8:
-            process_hexadecimal(item.data, 8);
+            process_hexadecimal(item.uData, 8);
             break;
         case LOG_CHAR:
-            process_string((char*)&item.data, 1);
+            process_string((char*)&item.chr, 1);
         }
     }
 }
