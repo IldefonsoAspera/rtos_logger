@@ -72,11 +72,11 @@ enum log_color {
 #define log_hex(number, ...)        GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_hex((number) __VA_OPT__(,) __VA_ARGS__), \
                                                                         _log_hex((number), LOG_COLOR_NONE))
 
-#define log_array_dec(number, ...)  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_array_dec((number) __VA_OPT__(,) __VA_ARGS__), \
-                                                                        _log_array_dec((number), LOG_COLOR_NONE))
+#define log_array_dec(array, nItems, ...)   GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_array_dec((array), (nItems), __VA_OPT__(,) __VA_ARGS__), \
+                                                                                _log_array_dec((array), (nItems), LOG_COLOR_NONE))
 
-#define log_array_hex(number, ...)  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_array_hex((number) __VA_OPT__(,) __VA_ARGS__), \
-                                                                        _log_array_hex((number), LOG_COLOR_NONE))
+#define log_array_hex(array, nItems, ...)   GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_array_hex((array), (nItems), __VA_OPT__(,) __VA_ARGS__), \
+                                                                                _log_array_hex((array), (nItems), LOG_COLOR_NONE))
 
 
 
@@ -104,8 +104,8 @@ enum log_color {
                                                             signed int:     LOG_HEX_8), (color))
 
 
-#define _log_array_dec(array, nItems, color)            _log_array((uint32_t)(number), (nItems), sizeof(array[0]), \
-                                                            _Generic((number),             \
+#define _log_array_dec(array, nItems, color)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
+                                                            _Generic((array)[0],           \
                                                             unsigned char:  LOG_UINT_DEC,  \
                                                             unsigned short: LOG_UINT_DEC,  \
                                                             unsigned long:  LOG_UINT_DEC,  \
@@ -117,8 +117,8 @@ enum log_color {
                                                             signed int:     LOG_INT_DEC), (color))
 
 
-#define _log_array_hex(array, nItems, number, color)    _log_array((uint32_t)(number), (nItems), sizeof(array[0]), \
-                                                            _Generic((number),          \
+#define _log_array_hex(array, nItems, color)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
+                                                            _Generic((array)[0],        \
                                                             unsigned char:  LOG_HEX_2,  \
                                                             unsigned short: LOG_HEX_4,  \
                                                             unsigned long:  LOG_HEX_8,  \
@@ -139,6 +139,7 @@ enum log_color {
 void _log_var(uint32_t number, enum log_data_type type, enum log_color color);
 void _log_str(char *string,    uint32_t length,         enum log_color color);
 void _log_char(char chr,       enum log_color color);
+void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, enum log_color color);
 
 
 void log_flush(void);

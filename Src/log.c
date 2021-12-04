@@ -39,9 +39,13 @@ typedef struct log_fifo_item_s
         uint32_t uData;
         int32_t  sData;
         char *   str;
-        char     chr;
+        char     chr[4];
     };
-    uint16_t           str_len;
+    union
+    {
+        uint16_t str_len;
+        uint8_t  nChars;
+    };
     enum log_data_type type;
 #if LOG_SUPPORT_ANSI_COLOR
     enum log_color     color;
@@ -209,7 +213,7 @@ void _log_str(char *string, uint32_t length, enum log_color color)
 
 void _log_char(char chr, enum log_color color)
 {
-    log_fifo_item_t item = {.type = LOG_CHAR, .chr = chr};
+    log_fifo_item_t item = {.type = LOG_CHAR, .chr[0] = chr, .nChars = 1};
 
 #if LOG_SUPPORT_ANSI_COLOR
         item.color = color;
@@ -219,7 +223,7 @@ void _log_char(char chr, enum log_color color)
 }
 
 
-void _log_array(void* pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, enum log_color color)
+void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, enum log_color color)
 {
     uint8_t* pData = (uint8_t*) pArray;
     uint32_t offset = 0;
@@ -267,7 +271,7 @@ void log_flush(void)
             process_hexadecimal(item.uData, 8);
             break;
         case LOG_CHAR:
-            process_string((char*)&item.chr, 1);
+            process_string(item.chr, item.nChars);
         }
     }
 }
