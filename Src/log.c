@@ -168,26 +168,19 @@ static void process_decimal(uint32_t number, bool isNegative)
     if(isNegative)
         output[i++] = '-';
 
-    if(number)
+    while(number < divider)
+        divider /= 10;
+
+    while(number >= 10)
     {
-        while(number < divider)
-            divider /= 10;
-
-        while(number > 0)
-        {
-            output[i++] = 0x30 + number/divider;
-            number %= divider;
-            divider /= 10;
-        }
+        output[i++] = 0x30 + number/divider;
+        number %= divider;
+        divider /= 10;
     }
-    else
-        output[i++] = '0';
 
+    output[i++] = 0x30 + number;
     process_string(output, i);
 }
-
-
-// TODO process array (stack/no stack)
 
 
 void _log_var(uint32_t number, enum log_data_type type, enum log_color color)
@@ -223,6 +216,21 @@ void _log_char(char chr, enum log_color color)
 #endif
 
     log_fifo_put(&item, &logFifo);
+}
+
+
+void _log_array(void* pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, enum log_color color)
+{
+    uint8_t* pData = (uint8_t*) pArray;
+    uint32_t offset = 0;
+
+    while(nItems--)
+    {
+        _log_var(pData[offset], type, color);
+        offset += nBytesPerItem;
+        if(nItems)                      // Skips separator after last array item
+            _log_char(' ', color);
+    }
 }
 
 

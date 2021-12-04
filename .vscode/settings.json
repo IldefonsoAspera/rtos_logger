@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "stdbool.h": "c",
+        "assert.h": "c",
+        "main.h": "c",
+        "cmsis_os.h": "c"
+    }
+}

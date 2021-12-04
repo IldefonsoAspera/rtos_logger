@@ -60,20 +60,27 @@ enum log_color {
 
 
 
-#define log_str(str, ...)     GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_str((str), strlen(str) __VA_OPT__(,) __VA_ARGS__), \
-                                                                  _log_str((str), strlen(str), LOG_COLOR_NONE))
+#define log_str(str, ...)           GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_str((str), strlen(str) __VA_OPT__(,) __VA_ARGS__), \
+                                                                        _log_str((str), strlen(str), LOG_COLOR_NONE))
 
-#define log_char(chr, ...)    GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_char((chr) __VA_OPT__(,) __VA_ARGS__),     \
-                                                                  _log_char((chr), LOG_COLOR_NONE))
+#define log_char(chr, ...)          GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_char((chr) __VA_OPT__(,) __VA_ARGS__),   \
+                                                                        _log_char((chr), LOG_COLOR_NONE))
 
-#define log_dec(number, ...)  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_dec((number) __VA_OPT__(,) __VA_ARGS__), \
-                                                                  _log_dec((number), LOG_COLOR_NONE))
+#define log_dec(number, ...)        GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_dec((number) __VA_OPT__(,) __VA_ARGS__), \
+                                                                        _log_dec((number), LOG_COLOR_NONE))
 
-#define log_hex(number, ...)  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_hex((number) __VA_OPT__(,) __VA_ARGS__), \
-                                                                  _log_hex((number), LOG_COLOR_NONE))
+#define log_hex(number, ...)        GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_hex((number) __VA_OPT__(,) __VA_ARGS__), \
+                                                                        _log_hex((number), LOG_COLOR_NONE))
+
+#define log_array_dec(number, ...)  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_array_dec((number) __VA_OPT__(,) __VA_ARGS__), \
+                                                                        _log_array_dec((number), LOG_COLOR_NONE))
+
+#define log_array_hex(number, ...)  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_array_hex((number) __VA_OPT__(,) __VA_ARGS__), \
+                                                                        _log_array_hex((number), LOG_COLOR_NONE))
 
 
-#define _log_dec(number, color) _log_var((uint32_t)number, _Generic((number),              \
+
+#define _log_dec(number, color) _log_var((uint32_t)(number), _Generic((number),            \
                                                             unsigned char:  LOG_UINT_DEC,  \
                                                             unsigned short: LOG_UINT_DEC,  \
                                                             unsigned long:  LOG_UINT_DEC,  \
@@ -82,7 +89,7 @@ enum log_color {
                                                             signed char:    LOG_INT_DEC,   \
                                                             signed short:   LOG_INT_DEC,   \
                                                             signed long:    LOG_INT_DEC,   \
-                                                            signed int:     LOG_INT_DEC), color)
+                                                            signed int:     LOG_INT_DEC), (color))
 
 
 #define _log_hex(number, color) _log_var((uint32_t)(number), _Generic((number),         \
@@ -94,7 +101,35 @@ enum log_color {
                                                             signed char:    LOG_HEX_2,  \
                                                             signed short:   LOG_HEX_4,  \
                                                             signed long:    LOG_HEX_8,  \
-                                                            signed int:     LOG_HEX_8), color)
+                                                            signed int:     LOG_HEX_8), (color))
+
+
+#define _log_array_dec(array, nItems, color)            _log_array((uint32_t)(number), (nItems), sizeof(array[0]), \
+                                                            _Generic((number),             \
+                                                            unsigned char:  LOG_UINT_DEC,  \
+                                                            unsigned short: LOG_UINT_DEC,  \
+                                                            unsigned long:  LOG_UINT_DEC,  \
+                                                            unsigned int:   LOG_UINT_DEC,  \
+                                                            char:           LOG_INT_DEC,   \
+                                                            signed char:    LOG_INT_DEC,   \
+                                                            signed short:   LOG_INT_DEC,   \
+                                                            signed long:    LOG_INT_DEC,   \
+                                                            signed int:     LOG_INT_DEC), (color))
+
+
+#define _log_array_hex(array, nItems, number, color)    _log_array((uint32_t)(number), (nItems), sizeof(array[0]), \
+                                                            _Generic((number),          \
+                                                            unsigned char:  LOG_HEX_2,  \
+                                                            unsigned short: LOG_HEX_4,  \
+                                                            unsigned long:  LOG_HEX_8,  \
+                                                            unsigned int:   LOG_HEX_8,  \
+                                                            char:           LOG_HEX_2,  \
+                                                            signed char:    LOG_HEX_2,  \
+                                                            signed short:   LOG_HEX_4,  \
+                                                            signed long:    LOG_HEX_8,  \
+                                                            signed int:     LOG_HEX_8), (color))
+
+
 
 #define logc_str(cond, string, ...)  do{ if(cond){ log_str((string) __VA_OPT__(,) __VA_ARGS__); } } while(0)
 #define logc_dec(cond, number, ...)  do{ if(cond){ log_dec((number) __VA_OPT__(,) __VA_ARGS__); } } while(0)
