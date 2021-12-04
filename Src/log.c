@@ -149,7 +149,7 @@ static void process_hexadecimal(uint32_t number, uint8_t nDigits)
 {
     const char hexVals[16] = {'0','1','2','3','4','5','6','7',
                               '8','9','A','B','C','D','E','F'};
-    char output[nDigits];
+    char output[8];
     int8_t i;
 
     // Fill char array starting at the end
@@ -249,6 +249,9 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
 void log_flush(void)
 {
     log_fifo_item_t item;
+
+    if(logFifo.nItems == LOG_ARRAY_N_ELEM(logFifo.buffer))
+        process_string("\r\nLog input FIFO full\r\n", strlen("\r\nLog input FIFO full\r\n"));
 
     while(log_fifo_get(&item, &logFifo))
     {
