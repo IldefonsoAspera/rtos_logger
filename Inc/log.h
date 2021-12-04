@@ -53,11 +53,14 @@ enum log_color {
     LOG_COLOR_NONE
 };
 
+
+typedef void (*log_out_handler)(void* p_data, uint32_t length);
+
+
+
 // Macro that returns the second element.
 // Used to count the number of variable arguments
 #define GET_MACRO(_1, NAME, ...) NAME
-
-
 
 
 
@@ -151,7 +154,7 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
 
 void log_flush(void);
 void log_thread(void const * argument);
-void log_init(void);
+void log_init(log_out_handler callback);
 
 
 

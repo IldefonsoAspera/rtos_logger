@@ -141,7 +141,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   vcp_init(&huart2);
-  log_init();
+  log_init(vcp_send);
 
   /* USER CODE END RTOS_THREADS */
 

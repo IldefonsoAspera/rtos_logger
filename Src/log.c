@@ -7,7 +7,6 @@
 
 #include "main.h"
 #include "cmsis_os.h"
-#include "vcp.h"
 
 
 
@@ -64,7 +63,7 @@ typedef struct log_fifo_s
 
 
 static log_fifo_t logFifo;
-
+static log_out_handler mCallback = NULL;
 
 
 static inline void log_fifo_put(log_fifo_item_t *pItem, log_fifo_t *pFifo)
@@ -114,6 +113,12 @@ static void log_fifo_reset(log_fifo_t *pFifo)
 }
 
 
+static void process_string(char *string, uint32_t length)
+{
+    if(mCallback)
+        mCallback(string, length);
+}
+
 
 #if LOG_SUPPORT_ANSI_COLOR
 static void set_color(enum log_color color)
@@ -127,22 +132,16 @@ static void set_color(enum log_color color)
         {
             str[3] = ansiColors[color][1];
             str[4] = LOG_ANSI_SUFFIX;
-            vcp_send(str, 5);
+            process_string(str, 5);
         }
         else
         {
             str[3] = LOG_ANSI_SUFFIX;
-            vcp_send(str, 4);
+            process_string(str, 4);
         }
     }
 }
 #endif
-
-
-static void process_string(char *string, uint32_t length)
-{
-    vcp_send(string, length);
-}
 
 
 static void process_hexadecimal(uint32_t number, uint8_t nDigits)
@@ -311,8 +310,9 @@ void log_thread(void const * argument)
 }
 
 
-void log_init(void)
+void log_init(log_out_handler callback)
 {
+    mCallback = callback;
     static_assert(!(LOG_INPUT_FIFO_N_ELEM & (LOG_INPUT_FIFO_N_ELEM - 1)), "Log input queue must be power of 2");
     log_fifo_reset(&logFifo);
 }
