@@ -512,6 +512,12 @@ void entry_demo_th(void const * argument)
       log_char('\r');
       log_char('\n');
 
+      logc_char(1, 'a');
+      logc_char(1, 'a', LOG_COLOR_RED);
+      logc_array_dec(1, arrayh16, 2, LOG_COLOR_RED);
+      logc_array_hex(1, arrayh16, 2, LOG_COLOR_RED);
+      logc_array_dec(1, arrayh16, 2);
+      logc_array_hex(1, arrayh16, 2);
       osDelay(500);
   }
   /* USER CODE END entry_demo_th */
