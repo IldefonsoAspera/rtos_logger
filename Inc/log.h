@@ -135,7 +135,7 @@ extern "C" {
 
 /*********************** User configurable definitions ***********************/
 
-#define LOG_INPUT_FIFO_N_ELEM   128     // Defines log input FIFO size in number of elements (const strings, variables, etc)
+#define LOG_INPUT_FIFO_N_ELEM   256     // Defines log input FIFO size in number of elements (const strings, variables, etc)
 #define LOG_DELAY_LOOPS_MS      100     // Delay between log thread pollings to check if input queue contains data
 #define LOG_SUPPORT_ANSI_COLOR  1       // Activating colors increase element size
 

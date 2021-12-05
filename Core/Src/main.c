@@ -513,11 +513,23 @@ void entry_demo_th(void const * argument)
       log_char('\n');
 
       logc_char(1, 'a');
+      log_char('\r');
+      log_char('\n');
       logc_char(1, 'a', LOG_COLOR_RED);
+      log_char('\r');
+      log_char('\n');
       logc_array_dec(1, arrayh16, 2, LOG_COLOR_RED);
+      log_char('\r');
+      log_char('\n');
       logc_array_hex(1, arrayh16, 2, LOG_COLOR_RED);
+      log_char('\r');
+      log_char('\n');
       logc_array_dec(1, arrayh16, 2);
+      log_char('\r');
+      log_char('\n');
       logc_array_hex(1, arrayh16, 2);
+      log_char('\r');
+      log_char('\n');
       osDelay(500);
   }
   /* USER CODE END entry_demo_th */
