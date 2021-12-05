@@ -200,7 +200,7 @@ void _log_var(uint32_t number, enum log_data_type type, enum log_color color)
 
 void _log_str(char *string, uint32_t length, enum log_color color)
 {
-    log_fifo_item_t item = {.type = LOG_STRING, .str = string, .strLen = length};
+    log_fifo_item_t item = {.type = _LOG_STRING, .str = string, .strLen = length};
 
 #if LOG_SUPPORT_ANSI_COLOR
         item.color = color;
@@ -259,37 +259,37 @@ void log_flush(void)
 #endif
         switch(item.type)
         {
-        case LOG_STRING:
+        case _LOG_STRING:
             process_string(item.str, item.strLen);
             break;
-        case LOG_UINT_DEC:
+        case _LOG_UINT_DEC:
             process_decimal(item.uData, false);
             break;
-        case LOG_INT_DEC_1:
+        case _LOG_INT_DEC_1:
             if((int8_t)item.sData < 0)
                 process_decimal((uint32_t)-((int8_t)item.sData), true);
             else
                 process_decimal(item.uData, false);
             break;
-        case LOG_INT_DEC_2:
+        case _LOG_INT_DEC_2:
             if((int16_t)item.sData < 0)
                 process_decimal((uint32_t)-((int16_t)item.sData), true);
             else
                 process_decimal(item.uData, false);
             break;
-        case LOG_INT_DEC_4:
+        case _LOG_INT_DEC_4:
             if((int32_t)item.sData < 0)
                 process_decimal((uint32_t)-((int32_t)item.sData), true);
             else
                 process_decimal(item.uData, false);
             break;
-        case LOG_HEX_2:
+        case _LOG_HEX_1:
             process_hexadecimal(item.uData, 2);
             break;
-        case LOG_HEX_4:
+        case _LOG_HEX_2:
             process_hexadecimal(item.uData, 4);
             break;
-        case LOG_HEX_8:
+        case _LOG_HEX_4:
             process_hexadecimal(item.uData, 8);
             break;
         case LOG_CHAR:

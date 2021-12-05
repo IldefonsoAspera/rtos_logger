@@ -143,14 +143,14 @@ extern "C" {
 
 
 enum log_data_type {
-    LOG_STRING,
-    LOG_UINT_DEC,
-    LOG_INT_DEC_1,
-    LOG_INT_DEC_2,
-    LOG_INT_DEC_4,
-    LOG_HEX_2,
-    LOG_HEX_4,
-    LOG_HEX_8,
+    _LOG_STRING,
+    _LOG_UINT_DEC,
+    _LOG_INT_DEC_1,
+    _LOG_INT_DEC_2,
+    _LOG_INT_DEC_4,
+    _LOG_HEX_1,
+    _LOG_HEX_2,
+    _LOG_HEX_4,
     LOG_CHAR
 };
 
@@ -199,54 +199,54 @@ typedef void (*log_out_handler)(void* p_data, uint32_t length);
 
 
 
-#define _log_dec(number, color) _log_var((uint32_t)(number), _Generic((number),            \
-                                                            unsigned char:  LOG_UINT_DEC,  \
-                                                            unsigned short: LOG_UINT_DEC,  \
-                                                            unsigned long:  LOG_UINT_DEC,  \
-                                                            unsigned int:   LOG_UINT_DEC,  \
-                                                            char:           LOG_INT_DEC_1, \
-                                                            signed char:    LOG_INT_DEC_1, \
-                                                            signed short:   LOG_INT_DEC_2, \
-                                                            signed long:    LOG_INT_DEC_4, \
-                                                            signed int:     LOG_INT_DEC_4), (color))
+#define _log_dec(number, color) _log_var((uint32_t)(number), _Generic((number),             \
+                                                            unsigned char:  _LOG_UINT_DEC,  \
+                                                            unsigned short: _LOG_UINT_DEC,  \
+                                                            unsigned long:  _LOG_UINT_DEC,  \
+                                                            unsigned int:   _LOG_UINT_DEC,  \
+                                                            char:           _LOG_INT_DEC_1, \
+                                                            signed char:    _LOG_INT_DEC_1, \
+                                                            signed short:   _LOG_INT_DEC_2, \
+                                                            signed long:    _LOG_INT_DEC_4, \
+                                                            signed int:     _LOG_INT_DEC_4), (color))
 
 
-#define _log_hex(number, color) _log_var((uint32_t)(number), _Generic((number),         \
-                                                            unsigned char:  LOG_HEX_2,  \
-                                                            unsigned short: LOG_HEX_4,  \
-                                                            unsigned long:  LOG_HEX_8,  \
-                                                            unsigned int:   LOG_HEX_8,  \
-                                                            char:           LOG_HEX_2,  \
-                                                            signed char:    LOG_HEX_2,  \
-                                                            signed short:   LOG_HEX_4,  \
-                                                            signed long:    LOG_HEX_8,  \
-                                                            signed int:     LOG_HEX_8), (color))
+#define _log_hex(number, color) _log_var((uint32_t)(number), _Generic((number),          \
+                                                            unsigned char:  _LOG_HEX_1,  \
+                                                            unsigned short: _LOG_HEX_2,  \
+                                                            unsigned long:  _LOG_HEX_4,  \
+                                                            unsigned int:   _LOG_HEX_4,  \
+                                                            char:           _LOG_HEX_1,  \
+                                                            signed char:    _LOG_HEX_1,  \
+                                                            signed short:   _LOG_HEX_2,  \
+                                                            signed long:    _LOG_HEX_4,  \
+                                                            signed int:     _LOG_HEX_4), (color))
 
 
 #define _log_array_dec(array, nItems, color)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
-                                                            _Generic((array)[0],           \
-                                                            unsigned char:  LOG_UINT_DEC,  \
-                                                            unsigned short: LOG_UINT_DEC,  \
-                                                            unsigned long:  LOG_UINT_DEC,  \
-                                                            unsigned int:   LOG_UINT_DEC,  \
-                                                            char:           LOG_INT_DEC_1, \
-                                                            signed char:    LOG_INT_DEC_1, \
-                                                            signed short:   LOG_INT_DEC_2, \
-                                                            signed long:    LOG_INT_DEC_4, \
-                                                            signed int:     LOG_INT_DEC_4), (color))
+                                                            _Generic((array)[0],            \
+                                                            unsigned char:  _LOG_UINT_DEC,  \
+                                                            unsigned short: _LOG_UINT_DEC,  \
+                                                            unsigned long:  _LOG_UINT_DEC,  \
+                                                            unsigned int:   _LOG_UINT_DEC,  \
+                                                            char:           _LOG_INT_DEC_1, \
+                                                            signed char:    _LOG_INT_DEC_1, \
+                                                            signed short:   _LOG_INT_DEC_2, \
+                                                            signed long:    _LOG_INT_DEC_4, \
+                                                            signed int:     _LOG_INT_DEC_4), (color))
 
 
 #define _log_array_hex(array, nItems, color)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
-                                                            _Generic((array)[0],        \
-                                                            unsigned char:  LOG_HEX_2,  \
-                                                            unsigned short: LOG_HEX_4,  \
-                                                            unsigned long:  LOG_HEX_8,  \
-                                                            unsigned int:   LOG_HEX_8,  \
-                                                            char:           LOG_HEX_2,  \
-                                                            signed char:    LOG_HEX_2,  \
-                                                            signed short:   LOG_HEX_4,  \
-                                                            signed long:    LOG_HEX_8,  \
-                                                            signed int:     LOG_HEX_8), (color))
+                                                            _Generic((array)[0],         \
+                                                            unsigned char:  _LOG_HEX_1,  \
+                                                            unsigned short: _LOG_HEX_2,  \
+                                                            unsigned long:  _LOG_HEX_4,  \
+                                                            unsigned int:   _LOG_HEX_4,  \
+                                                            char:           _LOG_HEX_1,  \
+                                                            signed char:    _LOG_HEX_1,  \
+                                                            signed short:   _LOG_HEX_2,  \
+                                                            signed long:    _LOG_HEX_4,  \
+                                                            signed int:     _LOG_HEX_4), (color))
 
 
 // Suppress syntax error for conditional logs when parsing with IntelliSense or CDT parser
