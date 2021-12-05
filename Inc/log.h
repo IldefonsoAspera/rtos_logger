@@ -59,7 +59,8 @@
  * should wake up to check and process the input queue.
  *
  * A flush function of the input FIFO is also available in case the system needs to reset and all
- * remaining data must be processed outside of the logger thread.
+ * remaining data must be processed outside of the logger thread. If during initialization,
+ * a pointer was provided for backend flushing, this function calls it after processing input FIFO.
  *
  *
  * Public defines:
@@ -131,6 +132,7 @@ extern "C" {
 #include "main.h"
 
 #include <string.h>
+#include <stdbool.h>
 
 
 /*********************** User configurable definitions ***********************/
@@ -170,6 +172,7 @@ enum log_color {
 
 
 typedef void (*log_out_handler)(void* p_data, uint32_t length);
+typedef void (*log_out_flush_handler)(void);
 
 
 
@@ -249,6 +252,9 @@ typedef void (*log_out_handler)(void* p_data, uint32_t length);
                                                             signed int:     _LOG_HEX_4), (color))
 
 
+#define log_flush()     _log_flush(true)
+
+
 // Suppress syntax error for conditional logs when parsing with IntelliSense or CDT parser
 #if defined(__INTELLISENSE__) || defined(__CDT_PARSER__)
 #define logc_str(cond, string, ...)  0
@@ -271,11 +277,11 @@ void _log_var(uint32_t number, enum log_data_type type, enum log_color color);
 void _log_str(char *string,    uint32_t length,         enum log_color color);
 void _log_char(char chr,       enum log_color color);
 void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, enum log_color color);
+void _log_flush(bool isPublicCall);
 
 
-void log_flush(void);
 void log_thread(void const * argument);
-void log_init(log_out_handler callback);
+void log_init(log_out_handler printHandler, log_out_flush_handler flushHandler);
 
 
 

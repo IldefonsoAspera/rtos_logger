@@ -20,17 +20,25 @@ StaticStreamBuffer_t inputStreamCb;
 StreamBufferHandle_t inputStream;
 
 
+void vcp_flush(void)
+{
+    uint8_t rxBuffer[16];
+    uint32_t nChars;
+
+    do
+    {
+        nChars = xStreamBufferReceive(inputStream, rxBuffer, sizeof(rxBuffer), 0);
+        HAL_UART_Transmit(mp_huart, rxBuffer, nChars, HAL_MAX_DELAY);
+    } while (nChars == sizeof(rxBuffer));
+}
+
 
 void vcp_th(void const * argument)
 {
 
     while(1)
     {
-        uint8_t rxBuffer[16];
-        uint32_t nChars;
-
-        nChars = xStreamBufferReceive(inputStream, rxBuffer, sizeof(rxBuffer), HAL_MAX_DELAY);
-        HAL_UART_Transmit(mp_huart, rxBuffer, nChars, HAL_MAX_DELAY);
+        vcp_flush();
         HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
     }
 }

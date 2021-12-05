@@ -141,7 +141,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   vcp_init(&huart2);
-  log_init(vcp_send);
+  log_init(vcp_send, vcp_flush);
 
   /* USER CODE END RTOS_THREADS */
 
@@ -430,6 +430,8 @@ void entry_demo_th(void const * argument)
       log_str("Tst1\r\n", LOG_COLOR_RED);
       log_str("Tst2\r\n", LOG_COLOR_BLUE);
       log_str("Tst2\r\n", LOG_COLOR_DEFAULT);
+
+      log_flush();
 
       log_array_dec(array8, 4);
       log_char('\r');

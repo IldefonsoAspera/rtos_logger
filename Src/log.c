@@ -62,8 +62,10 @@ typedef struct log_fifo_s
 
 
 
-static log_fifo_t logFifo;
-static log_out_handler mCallback = NULL;
+static log_fifo_t            logFifo;
+static log_out_handler       mPrintHandler = NULL;
+static log_out_flush_handler mFlushHandler = NULL;
+
 
 
 static inline void log_fifo_put(log_fifo_item_t *pItem, log_fifo_t *pFifo)
@@ -115,8 +117,8 @@ static void log_fifo_reset(log_fifo_t *pFifo)
 
 static void process_string(char *string, uint32_t length)
 {
-    if(mCallback)
-        mCallback(string, length);
+    if(mPrintHandler)
+        mPrintHandler(string, length);
 }
 
 
@@ -245,7 +247,7 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
 }
 
 
-void log_flush(void)
+void _log_flush(bool isPublicCall)
 {
     log_fifo_item_t item;
 
@@ -296,6 +298,9 @@ void log_flush(void)
             process_string(item.chr, item.nChars);
         }
     }
+
+    if(isPublicCall && mFlushHandler)
+        mFlushHandler();
 }
 
 
@@ -304,15 +309,16 @@ void log_thread(void const * argument)
 
     while(1)
     {
-        log_flush();
+        _log_flush(false);
         osDelay(LOG_DELAY_LOOPS_MS);
     }
 }
 
 
-void log_init(log_out_handler callback)
+void log_init(log_out_handler printHandler, log_out_flush_handler flushHandler)
 {
-    mCallback = callback;
+    mPrintHandler = printHandler;
+    mFlushHandler = flushHandler;
     static_assert(!(LOG_INPUT_FIFO_N_ELEM & (LOG_INPUT_FIFO_N_ELEM - 1)), "Log input queue must be power of 2");
     log_fifo_reset(&logFifo);
 }

@@ -54,7 +54,8 @@ FIFO in number of items, and `LOG_DELAY_LOOPS_MS`, which defines how often the l
 should wake up to check and process the input queue.
 
 A flush function of the input FIFO is also available in case the system needs to reset and all
-remaining data must be processed outside of the logger thread.
+remaining data must be processed outside of the logger thread. If during initialization,
+a pointer was provided for backend flushing, this function calls it after processing input FIFO.
 
 
 ## Public defines
