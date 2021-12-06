@@ -13,11 +13,11 @@
 #include "main.h"
 
 
-UART_HandleTypeDef*  mp_huart = NULL;
+static UART_HandleTypeDef*  mp_huart = NULL;
 
 static uint8_t inputStreamBuffer[VCP_INPUT_BUFFER_SIZE];
-StaticStreamBuffer_t inputStreamCb;
-StreamBufferHandle_t inputStream;
+static StaticStreamBuffer_t inputStreamCb;
+static StreamBufferHandle_t inputStream;
 
 
 void vcp_flush(void)

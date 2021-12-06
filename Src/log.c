@@ -17,7 +17,7 @@
 #define LOG_ANSI_PREFIX         "\x1B["
 #define LOG_ANSI_SUFFIX         'm'
 
-static char ansiColors[_LOG_COLOR_LEN][2] = {
+static const char ansiColors[_LOG_COLOR_LEN][2] = {
     {'0', ' '},
     {'3', '0'},
     {'3', '1'},

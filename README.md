@@ -34,7 +34,9 @@ increases a lot the generated output (estimation: +50%).
 the output strings. The second pointer is optional (can be NULL) and allows the library to call the
 backend's flush function when `log_flush()` is called.
 
-* `log_thread()` must be called from a low priority thread. The function does not return.
+* `log_thread()` must be called from a low priority thread. The function does not return. The
+function requires a stack of 144 bytes plus the backend requirement stack, so a FreeRTOS stack size
+of 128 words should be enough for the thread.
 
 * To print constant strings call `log_str()` or `logc_str()` if a condition check is needed. These
 macros automatically extract the string size at compile time to optimize processing time.
