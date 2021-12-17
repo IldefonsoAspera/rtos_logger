@@ -30,8 +30,6 @@
  * contains data to process and converts it to strings that are sent to the backend. The library
  * only needs a callback function pointer during initialization to know where to send the
  * processed data.
- * ANSI coloring is also supported by activating a flag to provide colored text if needed, although it
- * increases a lot the generated output (estimation: +50%).
  *
  *
  * Usage
@@ -63,10 +61,6 @@
  * to _Generic. The separator used between each element is a space (' '). The data must not be
  * modified until the function returns (an interrupt that writes on the array could be problematic).
  *
- * All functions support an optional last parameter in the function call to configure the desired
- * ANSI color to print the item. It is supported (but ignored) even if LOG_SUPPORT_ANSI_COLOR is
- * set to 0. This way no function call needs to be modified if the flag is changed.
- *
  * Apart from that define, there is also LOG_INPUT_FIFO_N_ELEM, which defines the size of the input
  * FIFO in number of items, and LOG_DELAY_LOOPS_MS, which defines how often the logger thread
  * should wake up to check and process the input queue.
@@ -80,7 +74,6 @@
  *
  * LOG_INPUT_FIFO_N_ELEM
  * LOG_DELAY_LOOPS_MS
- * LOG_SUPPORT_ANSI_COLOR
  *
  *
  * Public functions/macros
@@ -109,8 +102,8 @@
  * - log_init(uart_print, NULL);
  *
  * - log_str("Test");
- * - log_str("Test2", LOG_COLOR_RED);
- * - logc_str(PRINT_FSM_STATE, "Test2", LOG_COLOR_YELLOW);
+ * - log_str("Test2");
+ * - logc_str(PRINT_FSM_STATE, "Test2");
  *
  * - log_flush()
  *
@@ -156,7 +149,6 @@ extern "C" {
 
 #define LOG_INPUT_FIFO_N_ELEM   256     // Defines log input FIFO size in number of elements (const strings, variables, etc)
 #define LOG_DELAY_LOOPS_MS      100     // Delay between log thread pollings to check if input queue contains data
-#define LOG_SUPPORT_ANSI_COLOR  1       // Activating colors increase element size
 
 /*****************************************************************************/
 
@@ -173,20 +165,6 @@ enum log_data_type {
     LOG_CHAR
 };
 
-enum log_color {
-    LOG_COLOR_DEFAULT,
-    LOG_COLOR_BLACK,
-    LOG_COLOR_RED,
-    LOG_COLOR_GREEN,
-    LOG_COLOR_YELLOW,
-    LOG_COLOR_BLUE,
-    LOG_COLOR_MAGENTA,
-    LOG_COLOR_CYAN,
-    LOG_COLOR_WHITE,
-    _LOG_COLOR_LEN,
-    LOG_COLOR_NONE
-};
-
 
 typedef void (*log_out_handler)(void* p_data, uint32_t length);
 typedef void (*log_out_flush_handler)(void);
@@ -197,29 +175,14 @@ typedef void (*log_out_flush_handler)(void);
 // Used to count the number of variable arguments
 #define GET_MACRO(_1, NAME, ...) NAME
 
+//  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_str((str), strlen(str) __VA_OPT__(,) __VA_ARGS__), _log_str((str), strlen(str)))
+
+#define log_str(str)                    _log_str((str), strlen(str))
+#define log_char(chr)                   _log_char(chr)
+#define log_flush()                     _log_flush(true)
 
 
-#define log_str(str, ...)           GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_str((str), strlen(str) __VA_OPT__(,) __VA_ARGS__), \
-                                                                        _log_str((str), strlen(str), LOG_COLOR_NONE))
-
-#define log_char(chr, ...)          GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_char((chr) __VA_OPT__(,) __VA_ARGS__),   \
-                                                                        _log_char((chr), LOG_COLOR_NONE))
-
-#define log_dec(number, ...)        GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_dec((number) __VA_OPT__(,) __VA_ARGS__), \
-                                                                        _log_dec((number), LOG_COLOR_NONE))
-
-#define log_hex(number, ...)        GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_hex((number) __VA_OPT__(,) __VA_ARGS__), \
-                                                                        _log_hex((number), LOG_COLOR_NONE))
-
-#define log_array_dec(array, nItems, ...)   GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_array_dec((array), (nItems) __VA_OPT__(,) __VA_ARGS__), \
-                                                                                _log_array_dec((array), (nItems), LOG_COLOR_NONE))
-
-#define log_array_hex(array, nItems, ...)   GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_array_hex((array), (nItems) __VA_OPT__(,) __VA_ARGS__), \
-                                                                                _log_array_hex((array), (nItems), LOG_COLOR_NONE))
-
-
-
-#define _log_dec(number, color) _log_var((uint32_t)(number), _Generic((number),             \
+#define log_dec(number)                 _log_var((uint32_t)(number), _Generic((number),     \
                                                             unsigned char:  _LOG_UINT_DEC,  \
                                                             unsigned short: _LOG_UINT_DEC,  \
                                                             unsigned long:  _LOG_UINT_DEC,  \
@@ -228,10 +191,10 @@ typedef void (*log_out_flush_handler)(void);
                                                             signed char:    _LOG_INT_DEC_1, \
                                                             signed short:   _LOG_INT_DEC_2, \
                                                             signed long:    _LOG_INT_DEC_4, \
-                                                            signed int:     _LOG_INT_DEC_4), (color))
+                                                            signed int:     _LOG_INT_DEC_4))
 
 
-#define _log_hex(number, color) _log_var((uint32_t)(number), _Generic((number),          \
+#define log_hex(number)                 _log_var((uint32_t)(number), _Generic((number),  \
                                                             unsigned char:  _LOG_HEX_1,  \
                                                             unsigned short: _LOG_HEX_2,  \
                                                             unsigned long:  _LOG_HEX_4,  \
@@ -240,10 +203,10 @@ typedef void (*log_out_flush_handler)(void);
                                                             signed char:    _LOG_HEX_1,  \
                                                             signed short:   _LOG_HEX_2,  \
                                                             signed long:    _LOG_HEX_4,  \
-                                                            signed int:     _LOG_HEX_4), (color))
+                                                            signed int:     _LOG_HEX_4))
 
 
-#define _log_array_dec(array, nItems, color)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
+#define log_array_dec(array, nItems)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
                                                             _Generic((array)[0],            \
                                                             unsigned char:  _LOG_UINT_DEC,  \
                                                             unsigned short: _LOG_UINT_DEC,  \
@@ -253,10 +216,10 @@ typedef void (*log_out_flush_handler)(void);
                                                             signed char:    _LOG_INT_DEC_1, \
                                                             signed short:   _LOG_INT_DEC_2, \
                                                             signed long:    _LOG_INT_DEC_4, \
-                                                            signed int:     _LOG_INT_DEC_4), (color))
+                                                            signed int:     _LOG_INT_DEC_4))
 
 
-#define _log_array_hex(array, nItems, color)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
+#define log_array_hex(array, nItems)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
                                                             _Generic((array)[0],         \
                                                             unsigned char:  _LOG_HEX_1,  \
                                                             unsigned short: _LOG_HEX_2,  \
@@ -266,34 +229,22 @@ typedef void (*log_out_flush_handler)(void);
                                                             signed char:    _LOG_HEX_1,  \
                                                             signed short:   _LOG_HEX_2,  \
                                                             signed long:    _LOG_HEX_4,  \
-                                                            signed int:     _LOG_HEX_4), (color))
+                                                            signed int:     _LOG_HEX_4))
 
 
-#define log_flush()     _log_flush(true)
+#define logc_str(cond, string)                do{ if(cond){ log_str(string); } } while(0)
+#define logc_dec(cond, number)                do{ if(cond){ log_dec(number); } } while(0)
+#define logc_hex(cond, number)                do{ if(cond){ log_hex(number); } } while(0)
+#define logc_char(cond, chr)                  do{ if(cond){ log_char(chr);   } } while(0)
+#define logc_array_dec(cond, array, nItems)   do{ if(cond){ log_array_dec((array), (nItems)); } } while(0)
+#define logc_array_hex(cond, array, nItems)   do{ if(cond){ log_array_hex((array), (nItems)); } } while(0)
 
 
-// Suppress syntax error for conditional logs when parsing with IntelliSense or CDT parser
-#if defined(__INTELLISENSE__) || defined(__CDT_PARSER__)
-#define logc_str(cond, string, ...)  0
-#define logc_dec(cond, number, ...)  0
-#define logc_hex(cond, number, ...)  0
-#define logc_char(cond, chr, ...)    0
-#define logc_array_dec(cond, array, nItems, ...)    0
-#define logc_array_hex(cond, array, nItems, ...)    0
-#else
-#define logc_str(cond, string, ...)  do{ if(cond){ log_str((string) __VA_OPT__(,) __VA_ARGS__); } } while(0)
-#define logc_dec(cond, number, ...)  do{ if(cond){ log_dec((number) __VA_OPT__(,) __VA_ARGS__); } } while(0)
-#define logc_hex(cond, number, ...)  do{ if(cond){ log_hex((number) __VA_OPT__(,) __VA_ARGS__); } } while(0)
-#define logc_char(cond, chr, ...)    do{ if(cond){ log_char((chr)   __VA_OPT__(,) __VA_ARGS__); } } while(0)
-#define logc_array_dec(cond, array, nItems, ...)   do{ if(cond){ log_array_dec((array), (nItems) __VA_OPT__(,) __VA_ARGS__); } } while(0)
-#define logc_array_hex(cond, array, nItems, ...)   do{ if(cond){ log_array_hex((array), (nItems) __VA_OPT__(,) __VA_ARGS__); } } while(0)
-#endif
 
-
-void _log_var(uint32_t number, enum log_data_type type, enum log_color color);
-void _log_str(char *string,    uint32_t length,         enum log_color color);
-void _log_char(char chr,       enum log_color color);
-void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, enum log_color color);
+void _log_var(uint32_t number, enum log_data_type type);
+void _log_str(char *string,    uint32_t length);
+void _log_char(char chr);
+void _log_array(void *pArray,  uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type);
 void _log_flush(bool isPublicCall);
 
 

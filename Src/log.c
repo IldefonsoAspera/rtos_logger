@@ -13,23 +13,6 @@
 #define LOG_ARRAY_N_ELEM(x)     (sizeof(x)/sizeof((x)[0]))
 
 
-#if LOG_SUPPORT_ANSI_COLOR
-#define LOG_ANSI_PREFIX         "\x1B["
-#define LOG_ANSI_SUFFIX         'm'
-
-static const char ansiColors[_LOG_COLOR_LEN][2] = {
-    {'0', ' '},
-    {'3', '0'},
-    {'3', '1'},
-    {'3', '2'},
-    {'3', '3'},
-    {'3', '4'},
-    {'3', '5'},
-    {'3', '6'},
-    {'3', '7'},
-};
-#endif
-
 
 typedef struct log_fifo_item_s
 {
@@ -46,9 +29,6 @@ typedef struct log_fifo_item_s
         uint8_t  nChars;
     };
     enum log_data_type type;
-#if LOG_SUPPORT_ANSI_COLOR
-    enum log_color     color;
-#endif
 } log_fifo_item_t;
 
 
@@ -122,30 +102,6 @@ static void process_string(char *string, uint32_t length)
 }
 
 
-#if LOG_SUPPORT_ANSI_COLOR
-static void set_color(enum log_color color)
-{
-    if(color != LOG_COLOR_NONE)
-    {
-        char str[5] = LOG_ANSI_PREFIX;
-
-        str[2] = ansiColors[color][0];
-        if(color != LOG_COLOR_DEFAULT)
-        {
-            str[3] = ansiColors[color][1];
-            str[4] = LOG_ANSI_SUFFIX;
-            process_string(str, 5);
-        }
-        else
-        {
-            str[3] = LOG_ANSI_SUFFIX;
-            process_string(str, 4);
-        }
-    }
-}
-#endif
-
-
 static void process_hexadecimal(uint32_t number, uint8_t nDigits)
 {
     const char hexVals[16] = {'0','1','2','3','4','5','6','7',
@@ -188,43 +144,28 @@ static void process_decimal(uint32_t number, bool isNegative)
 }
 
 
-void _log_var(uint32_t number, enum log_data_type type, enum log_color color)
+void _log_var(uint32_t number, enum log_data_type type)
 {
     log_fifo_item_t item = {.type = type, .uData = number};
-
-#if LOG_SUPPORT_ANSI_COLOR
-        item.color = color;
-#endif
-
     log_fifo_put(&item, &logFifo);
 }
 
 
-void _log_str(char *string, uint32_t length, enum log_color color)
+void _log_str(char *string, uint32_t length)
 {
     log_fifo_item_t item = {.type = _LOG_STRING, .str = string, .strLen = length};
-
-#if LOG_SUPPORT_ANSI_COLOR
-        item.color = color;
-#endif
-
     log_fifo_put(&item, &logFifo);
 }
 
 
-void _log_char(char chr, enum log_color color)
+void _log_char(char chr)
 {
     log_fifo_item_t item = {.type = LOG_CHAR, .chr[0] = chr, .nChars = 1};
-
-#if LOG_SUPPORT_ANSI_COLOR
-        item.color = color;
-#endif
-
     log_fifo_put(&item, &logFifo);
 }
 
 
-void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, enum log_color color)
+void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type)
 {
     uint8_t *pData = (uint8_t*) pArray;
     uint32_t offset = 0;
@@ -239,10 +180,10 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
         else
             value = *((uint8_t*)&pData[offset]);
 
-        _log_var(value, type, color);
+        _log_var(value, type);
         offset += nBytesPerItem;
         if(nItems)                      // Skips separator after last array item
-            _log_char(' ', color);
+            _log_char(' ');
     }
 }
 
@@ -256,9 +197,6 @@ void _log_flush(bool isPublicCall)
 
     while(log_fifo_get(&item, &logFifo))
     {
-#if LOG_SUPPORT_ANSI_COLOR
-        set_color(item.color);
-#endif
         switch(item.type)
         {
         case _LOG_STRING:

@@ -24,8 +24,6 @@ In order to process the data, its thread wakes up periodically to check if the i
 contains data to process and converts it to strings that are sent to the backend. The library
 only needs a callback function pointer during initialization to know where to send the
 processed data.
-ANSI coloring is also supported by activating a flag to provide colored text if needed, although it
-increases a lot the generated output (estimation: +50%).
 
 
 ## Usage
@@ -57,10 +55,6 @@ data and a number of elements to print. The size of each item is automatically e
 to `_Generic`. The separator used between each element is a space (' '). The data must not be
 modified until the function returns (an interrupt that writes on the array could be problematic).
 
-All functions support an optional last parameter in the function call to configure the desired
-ANSI color to print the item. It is supported (but ignored) even if `LOG_SUPPORT_ANSI_COLOR` is
-set to 0. This way no function call needs to be modified if the flag is changed.
-
 Apart from that define, there is also `LOG_INPUT_FIFO_N_ELEM`, which defines the size of the input
 FIFO in number of items, and `LOG_DELAY_LOOPS_MS`, which defines how often the logger thread
 should wake up to check and process the input queue.
@@ -74,7 +68,6 @@ a pointer was provided for backend flushing, this function calls it after proces
 
 `LOG_INPUT_FIFO_N_ELEM`
 `LOG_DELAY_LOOPS_MS`
-`LOG_SUPPORT_ANSI_COLOR`
 
 
 ## Public functions/macros
@@ -103,8 +96,8 @@ a pointer was provided for backend flushing, this function calls it after proces
 * `log_init(uart_print, NULL);`
 
 * `log_str("Test");`
-* `log_str("Test2", LOG_COLOR_RED);`
-* `logc_str(PRINT_FSM_STATE, "Test2", LOG_COLOR_YELLOW);`
+* `log_str("Test2");`
+* `logc_str(PRINT_FSM_STATE, "Test2");`
 
 * `log_flush()`
 

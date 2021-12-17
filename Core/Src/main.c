@@ -427,9 +427,9 @@ void entry_demo_th(void const * argument)
 
       log_str("Test start\r\n");
       log_str("Tst0 \r\n");
-      log_str("Tst1\r\n", LOG_COLOR_RED);
-      log_str("Tst2\r\n", LOG_COLOR_BLUE);
-      log_str("Tst2\r\n", LOG_COLOR_DEFAULT);
+      log_str("Tst1\r\n");
+      log_str("Tst2\r\n");
+      log_str("Tst2\r\n");
 
       log_flush();
 
@@ -470,12 +470,12 @@ void entry_demo_th(void const * argument)
       log_dec(123);
       log_char('\r');
       log_char('\n');
-      log_dec(12345, LOG_COLOR_YELLOW);
+      log_dec(12345);
       log_char('\r');
       log_char('\n');
-      log_dec(1234567890, LOG_COLOR_GREEN);
-      log_char('\r', LOG_COLOR_YELLOW);
-      log_char('\n', LOG_COLOR_DEFAULT);
+      log_dec(1234567890);
+      log_char('\r');
+      log_char('\n');
 
       log_hex((uint8_t)0x12);
       log_char('\r');
@@ -500,7 +500,7 @@ void entry_demo_th(void const * argument)
       log_char('\r');
       log_char('\n');
 
-      logc_str(1, "Conditional positive\r\n", LOG_COLOR_DEFAULT);
+      logc_str(1, "Conditional positive\r\n");
       logc_dec(1, (uint8_t)123);
       log_char('\r');
       log_char('\n');
@@ -517,13 +517,13 @@ void entry_demo_th(void const * argument)
       logc_char(1, 'a');
       log_char('\r');
       log_char('\n');
-      logc_char(1, 'a', LOG_COLOR_RED);
+      logc_char(1, 'a');
       log_char('\r');
       log_char('\n');
-      logc_array_dec(1, arrayh16, 2, LOG_COLOR_RED);
+      logc_array_dec(1, arrayh16, 2);
       log_char('\r');
       log_char('\n');
-      logc_array_hex(1, arrayh16, 2, LOG_COLOR_RED);
+      logc_array_hex(1, arrayh16, 2);
       log_char('\r');
       log_char('\n');
       logc_array_dec(1, arrayh16, 2);
