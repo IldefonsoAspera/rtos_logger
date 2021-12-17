@@ -18,10 +18,10 @@ typedef struct log_fifo_item_s
 {
     union
     {
-        uint32_t uData;
-        int32_t  sData;
-        char *   str;
-        char     chr[4];
+        uint32_t    uData;
+        int32_t     sData;
+        const char *str;
+        char        chr[4];
     };
     union
     {
@@ -95,10 +95,10 @@ static void log_fifo_reset(log_fifo_t *pFifo)
 }
 
 
-static void process_string(char *string, uint32_t length)
+static void process_string(const char *str, uint32_t length)
 {
     if(mPrintHandler)
-        mPrintHandler(string, length);
+        mPrintHandler(str, length);
 }
 
 
@@ -151,9 +151,9 @@ void _log_var(uint32_t number, enum log_data_type type)
 }
 
 
-void _log_str(char *string, uint32_t length)
+void _log_str(const char *str, uint32_t length)
 {
-    log_fifo_item_t item = {.type = _LOG_STRING, .str = string, .strLen = length};
+    log_fifo_item_t item = {.type = _LOG_STRING, .str = str, .strLen = length};
     log_fifo_put(&item, &logFifo);
 }
 
@@ -165,7 +165,7 @@ void _log_char(char chr)
 }
 
 
-void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type)
+void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, char separator)
 {
     uint8_t *pData = (uint8_t*) pArray;
     uint32_t offset = 0;
@@ -183,7 +183,7 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
         _log_var(value, type);
         offset += nBytesPerItem;
         if(nItems)                      // Skips separator after last array item
-            _log_char(' ');
+            _log_char(separator);
     }
 }
 

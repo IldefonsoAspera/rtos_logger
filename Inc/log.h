@@ -149,6 +149,7 @@ extern "C" {
 
 #define LOG_INPUT_FIFO_N_ELEM   256     // Defines log input FIFO size in number of elements (const strings, variables, etc)
 #define LOG_DELAY_LOOPS_MS      100     // Delay between log thread pollings to check if input queue contains data
+#define LOG_DEF_ARRAY_SEPARATOR ' '		// Default separator for arrays
 
 /*****************************************************************************/
 
@@ -166,7 +167,7 @@ enum log_data_type {
 };
 
 
-typedef void (*log_out_handler)(void* p_data, uint32_t length);
+typedef void (*log_out_handler)(const char* str, uint32_t length);
 typedef void (*log_out_flush_handler)(void);
 
 
@@ -175,7 +176,16 @@ typedef void (*log_out_flush_handler)(void);
 // Used to count the number of variable arguments
 #define GET_MACRO(_1, NAME, ...) NAME
 
-//  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) _log_str((str), strlen(str) __VA_OPT__(,) __VA_ARGS__), _log_str((str), strlen(str)))
+
+#define log_array_dec(array, nItems, ...) GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
+                                                    _log_array_dec((array), (nItems), __VA_OPT__(,) __VA_ARGS__), \
+                                                    _log_array_dec((array), (nItems), LOG_DEF_ARRAY_SEPARATOR))
+
+
+#define log_array_hex(array, nItems, ...) GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
+                                                    _log_array_hex((array), (nItems), __VA_OPT__(,) __VA_ARGS__), \
+                                                    _log_array_hex((array), (nItems), LOG_DEF_ARRAY_SEPARATOR))
+
 
 #define log_str(str)                    _log_str((str), strlen(str))
 #define log_char(chr)                   _log_char(chr)
@@ -206,7 +216,7 @@ typedef void (*log_out_flush_handler)(void);
                                                             signed int:     _LOG_HEX_4))
 
 
-#define log_array_dec(array, nItems)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
+#define _log_array_dec(array, nItems, separator)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
                                                             _Generic((array)[0],            \
                                                             unsigned char:  _LOG_UINT_DEC,  \
                                                             unsigned short: _LOG_UINT_DEC,  \
@@ -216,10 +226,10 @@ typedef void (*log_out_flush_handler)(void);
                                                             signed char:    _LOG_INT_DEC_1, \
                                                             signed short:   _LOG_INT_DEC_2, \
                                                             signed long:    _LOG_INT_DEC_4, \
-                                                            signed int:     _LOG_INT_DEC_4))
+                                                            signed int:     _LOG_INT_DEC_4), (separator))
 
 
-#define log_array_hex(array, nItems)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
+#define _log_array_hex(array, nItems, separator)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
                                                             _Generic((array)[0],         \
                                                             unsigned char:  _LOG_HEX_1,  \
                                                             unsigned short: _LOG_HEX_2,  \
@@ -229,7 +239,7 @@ typedef void (*log_out_flush_handler)(void);
                                                             signed char:    _LOG_HEX_1,  \
                                                             signed short:   _LOG_HEX_2,  \
                                                             signed long:    _LOG_HEX_4,  \
-                                                            signed int:     _LOG_HEX_4))
+                                                            signed int:     _LOG_HEX_4), (separator))
 
 
 #define logc_str(cond, string)                do{ if(cond){ log_str(string); } } while(0)
@@ -242,9 +252,9 @@ typedef void (*log_out_flush_handler)(void);
 
 
 void _log_var(uint32_t number, enum log_data_type type);
-void _log_str(char *string,    uint32_t length);
+void _log_str(const char *str, uint32_t length);
 void _log_char(char chr);
-void _log_array(void *pArray,  uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type);
+void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, char separator);
 void _log_flush(bool isPublicCall);
 
 
