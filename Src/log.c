@@ -40,7 +40,7 @@ typedef struct log_fifo_item_s
             char msgSymbol;
         };
     };
-    enum log_data_type type;
+    enum log_data_type type;    ///< Type of item to store in the FIFO
 } log_fifo_item_t;
 
 
@@ -50,10 +50,10 @@ typedef struct log_fifo_item_s
  */
 typedef struct log_fifo_s
 {
-    log_fifo_item_t buffer[LOG_INPUT_FIFO_N_ELEM];
-    uint32_t wrIdx;
-    uint32_t rdIdx;
-    uint32_t nItems;
+    log_fifo_item_t buffer[LOG_INPUT_FIFO_N_ELEM];  ///< Buffer where data will be stored
+    uint32_t wrIdx;                                 ///< Index of next position to write
+    uint32_t rdIdx;                                 ///< Index of next position to read
+    uint32_t nItems;                                ///< Number of items in buffer
 } log_fifo_t;
 
 
@@ -66,8 +66,8 @@ static log_out_flush_handler mFlushHandler = NULL;
 /**
  * @brief Inserts new item atomically in input FIFO if there is space
  *
- * @param pItem Pointer to item to insert
- * @param pFifo Pointer to FIFO where to insert the item
+ * @param[in]     pItem Pointer to item to insert
+ * @param[in,out] pFifo Pointer to FIFO where to insert the item
  */
 static inline void log_fifo_put(log_fifo_item_t *pItem, log_fifo_t *pFifo)
 {
@@ -90,10 +90,10 @@ static inline void log_fifo_put(log_fifo_item_t *pItem, log_fifo_t *pFifo)
 /**
  * @brief Gets item atomically from FIFO if it was not empty
  *
- * @param pItem Pointer to memory where item will be stored
- * @param pFifo Pointer to FIFO from where the item will be extracted
- * @return true If an item has been extracted
- * @return false If FIFO was empty and no item was extracted
+ * @param[in]     pItem Pointer to memory where item will be stored
+ * @param[in,out] pFifo Pointer to FIFO from where the item will be extracted
+ * @return true   If an item has been extracted
+ * @return false  If FIFO was empty and no item was extracted
  */
 static inline bool log_fifo_get(log_fifo_item_t *pItem, log_fifo_t *pFifo)
 {
@@ -119,7 +119,7 @@ static inline bool log_fifo_get(log_fifo_item_t *pItem, log_fifo_t *pFifo)
 /**
  * @brief Resets FIFO's indices, effectively emptying it
  *
- * @param pFifo Pointer to FIFO to reset
+ * @param[out] pFifo Pointer to FIFO to reset
  */
 static void log_fifo_reset(log_fifo_t *pFifo)
 {
@@ -132,8 +132,8 @@ static void log_fifo_reset(log_fifo_t *pFifo)
 /**
  * @brief Sends string to backend
  *
- * @param str    Pointer to string to print
- * @param length Number of characters of the string, not including the null terminator
+ * @param[in] str    Pointer to string to print
+ * @param[in] length Number of characters of the string, not including the null terminator
  */
 static void process_string(char *str, uint32_t length)
 {
@@ -145,8 +145,8 @@ static void process_string(char *str, uint32_t length)
 /**
  * @brief Converts number to string with hexadecimal format. Does not remove leading zeroes
  *
- * @param number  Number to be stringified
- * @param nDigits Number of digits to generate. Depends on the type (for max value) of the to be converted number
+ * @param[in] number  Number to be stringified
+ * @param[in] nDigits Number of digits to generate. Depends on the type (for max value) of the to be converted number
  */
 static void process_hexadecimal(uint32_t number, uint8_t nDigits)
 {
@@ -169,8 +169,8 @@ static void process_hexadecimal(uint32_t number, uint8_t nDigits)
 /**
  * @brief Converts number to string and removes leading zeroes
  *
- * @param number     Number to print
- * @param isNegative True if number is signed and negative
+ * @param[in] number     Number to print
+ * @param[in] isNegative True if number is signed and negative
  */
 static void process_decimal(uint32_t number, bool isNegative)
 {
@@ -199,8 +199,8 @@ static void process_decimal(uint32_t number, bool isNegative)
 /**
  * @brief Stores number in input FIFO
  *
- * @param number Number to store. Can be any type except float or larger than 32 bits
- * @param type   Type fo the number to store
+ * @param[in] number Number to store. Can be any type except float or larger than 32 bits
+ * @param[in] type   Type fo the number to store
  */
 void _log_var(uint32_t number, enum log_data_type type)
 {
@@ -212,8 +212,8 @@ void _log_var(uint32_t number, enum log_data_type type)
 /**
  * @brief Stores pointer to constant string in input FIFO
  *
- * @param str    Pointer to string
- * @param length String length without the null terminator. Must be smaller than 65536
+ * @param[in] str    Pointer to string
+ * @param[in] length String length without the null terminator. Must be smaller than 65536
  */
 void _log_str(const char *str, uint32_t length)
 {
@@ -225,7 +225,7 @@ void _log_str(const char *str, uint32_t length)
 /**
  * @brief Stores char in input FIFO
  *
- * @param chr Character to store
+ * @param[in] chr Character to store
  */
 void _log_char(char chr)
 {
@@ -239,11 +239,11 @@ void _log_char(char chr)
  * Insertions are not atomic, meaning that between two different numbers an interrupt could take place
  * because this function stores items iteratively
  *
- * @param pArray        Pointer to array where data to print is stored
- * @param nItems        Number of variables in the array to print
- * @param nBytesPerItem Number of bytes per item, i.e. int16_t items would have a value of 2
- * @param type          Type of each element of the array
- * @param separator     Separator to be used between elements of the array
+ * @param[in] pArray        Pointer to array where data to print is stored
+ * @param[in] nItems        Number of variables in the array to print
+ * @param[in] nBytesPerItem Number of bytes per item, i.e. int16_t items would have a value of 2
+ * @param[in] type          Type of each element of the array
+ * @param[in] separator     Separator to be used between elements of the array
  */
 void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, char separator)
 {
@@ -271,8 +271,8 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
 /**
  * @brief Stores msg start symbol along with pointer to const string in input FIFO
  *
- * @param label     String containing the label
- * @param length    Number of characters of the label, without the null terminator. Must be smaller than 256
+ * @param[in] label     String containing the label
+ * @param[in] length    Number of characters of the label, without the null terminator. Must be smaller than 256
  */
 void _log_msg_start(const char *label, uint32_t length)
 {
@@ -284,8 +284,8 @@ void _log_msg_start(const char *label, uint32_t length)
 /**
  * @brief Stores msg stop symbol along with pointer to const string in input FIFO
  *
- * @param label     String containing the label
- * @param length    Number of characters of the label, without the null terminator. Must be smaller than 256
+ * @param[in] label     String containing the label
+ * @param[in] length    Number of characters of the label, without the null terminator. Must be smaller than 256
  */
 void _log_msg_stop(const char *label, uint32_t length)
 {
@@ -298,7 +298,7 @@ void _log_msg_stop(const char *label, uint32_t length)
 /**
  * @brief Flushes the input FIFO processing all items and sending them to backend in a blocking way
  *
- * @param isPublicCall  True if function is called from outside this library
+ * @param[in] isPublicCall  True if function is called from outside this library
  */
 void _log_flush(bool isPublicCall)
 {

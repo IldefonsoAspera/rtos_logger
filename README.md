@@ -25,6 +25,9 @@ contains data to process and converts it to strings that are sent to the backend
 only needs a callback function pointer during initialization to know where to send the
 processed data.
 
+Additionally, there are also functions to log arrays of data. They insert the individual items
+in the input FIFO along with separators in between each item.
+
 
 ## Usage
 
@@ -62,12 +65,6 @@ should wake up to check and process the input queue.
 A flush function of the input FIFO is also available in case the system needs to reset and all
 remaining data must be processed outside of the logger thread. If during initialization,
 a pointer was provided for backend flushing, this function calls it after processing input FIFO.
-
-
-## Public defines
-
-`LOG_INPUT_FIFO_N_ELEM`
-`LOG_DELAY_LOOPS_MS`
 
 
 ## Public functions/macros

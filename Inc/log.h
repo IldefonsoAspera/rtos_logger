@@ -1,14 +1,6 @@
 /**
  * @defgroup log Logger library
  *
- * @file log.h
- * @author Ildefonso Aspera
- * @brief Logger library for FreeRTOS and Cortex M with input FIFO
- * @version 0.2.0
- * @date 2021-12-18
- *
- * @copyright Copyright (c) 2021
- *
  *
  * This library allows printing strings, characters and variables in decimal and hexadecimal to
  * a backend that will process the data. The library is isolated from it in order to allow any
@@ -27,6 +19,9 @@
  * Measurements in a Cortex M0+ shows that it takes around 100 cycles to insert a new data, with
  * around 50 cycles required for the actual FIFO insertion (with interrupts disabled). Usage of a
  * RTOS queue was discarded because it would take around 550 cycles for the insertions in FreeRTOS.
+ *
+ * Additionally, there are also functions to log arrays of data. They insert the individual items
+ * in the input FIFO along with separators in between each item.
  *
  * In order to process the data, its thread wakes up periodically to check if the input FIFO
  * contains data to process and converts it to strings that are sent to the backend. The library
@@ -72,33 +67,6 @@
  * a pointer was provided for backend flushing, this function calls it after processing input FIFO.
  *
  *
- * Public defines
- *
- * LOG_INPUT_FIFO_N_ELEM
- * LOG_DELAY_LOOPS_MS
- *
- *
- * Public functions/macros
- *
- * - log_init()
- * - log_thread()
- * - log_flush()
- *
- * - log_str()
- * - log_char()
- * - log_dec()
- * - log_hex()
- * - log_array_dec()
- * - log_array_hex()
- *
- * - logc_str()
- * - logc_char()
- * - logc_dec()
- * - logc_hex()
- * - logc_array_dec()
- * - logc_array_hex()
- *
- *
  * Usage example
  *
  * - log_init(uart_print, NULL);
@@ -109,8 +77,8 @@
  *
  * - log_flush()
  *
- * - log_char('\r');
- * - logc_char(PRINT_CR, '\r');
+ * - log_char('\\r');
+ * - logc_char(PRINT_CR, '\\r');
  *
  * - log_dec(u32Var);
  * - log_dec(s8Var);
@@ -123,6 +91,15 @@
  *
  * - uint16_t data[3] = {23, 156, 0};
  *   logc_array_hex(PRINT_DATA, &data[1], 2);     <-- Prints only last two array elements
+ *
+ *
+ * @file log.h
+ * @author Ildefonso Aspera
+ * @brief Logger library for FreeRTOS and Cortex M with input FIFO
+ * @version 0.2.0
+ * @date 2021-12-18
+ *
+ * @copyright Copyright (c) 2021
  *
  */
 
@@ -204,7 +181,8 @@ typedef void (*log_out_flush_handler)(void);
  *
  * @param[in] array Pointer to array of variables to print
  * @param[in] nItems Number of variables to print
- * @param[in] separator Optional parameter to define what separator to use. Falls back to #LOG_DEF_ARRAY_SEPARATOR
+ * @param[in] ... Optional parameter to define what separator to use.
+ *                Accepts chars and falls back to #LOG_DEF_ARRAY_SEPARATOR
  *
  */
 #define log_array_dec(array, nItems, ...)   GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
@@ -219,7 +197,8 @@ typedef void (*log_out_flush_handler)(void);
  *
  * @param[in] array Pointer to array of variables to print
  * @param[in] nItems Number of variables to print
- * @param[in] separator Optional parameter to define what separator to use. Falls back to #LOG_DEF_ARRAY_SEPARATOR
+ * @param[in] ... Optional parameter to define what separator to use.
+ *                Accepts chars and falls back to #LOG_DEF_ARRAY_SEPARATOR
  *
  */
 #define log_array_hex(array, nItems, ...)   GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
