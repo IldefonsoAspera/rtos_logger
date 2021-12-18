@@ -533,9 +533,16 @@ void entry_demo_th(void const * argument)
       log_char('\r');
       log_char('\n');
 
-      log_msg_start("label ");
+      log_msg_start("labelStart");
       log_str("String inside label");
-      log_msg_stop();
+      log_msg_stop("labelStop");
+      log_char('\r');
+      log_char('\n');
+      log_msg_start(NULL);
+      log_str("Message with no label");
+      log_msg_stop(NULL);
+      log_char('\r');
+      log_char('\n');
 
       osDelay(500);
   }

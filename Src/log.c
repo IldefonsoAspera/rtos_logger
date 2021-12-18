@@ -29,7 +29,7 @@ typedef struct log_fifo_item_s
         struct
         {
             uint8_t nChars;
-            char msgStart;
+            char msgSymbol;
         };
     };
     enum log_data_type type;
@@ -194,9 +194,17 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
 
 void _log_msg_start(const char *label, uint32_t length)
 {
-    log_fifo_item_t item = {.type = _LOG_MSG_START, .str = label, .nChars = length, .msgStart = LOG_MSG_START_SYMBOL};
+    log_fifo_item_t item = {.type = _LOG_MSG_START, .str = label, .nChars = length, .msgSymbol = LOG_MSG_START_SYMBOL};
     log_fifo_put(&item, &logFifo);
 }
+
+
+void _log_msg_stop(const char *label, uint32_t length)
+{
+    log_fifo_item_t item = {.type = _LOG_MSG_STOP, .str = label, .nChars = length, .msgSymbol = LOG_MSG_STOP_SYMBOL};
+    log_fifo_put(&item, &logFifo);
+}
+
 
 
 void _log_flush(bool isPublicCall)
@@ -247,8 +255,23 @@ void _log_flush(bool isPublicCall)
             process_string(item.chr, item.nChars);
             break;
         case _LOG_MSG_START:
-            process_string(&item.msgStart, 1);
-            process_string(item.str, item.nChars);
+            process_string(&item.msgSymbol, 1);
+            if(item.str)
+            {
+                process_string(item.str, item.nChars);
+                char separator = LOG_MSG_LABEL_SEPARATOR;
+                process_string(&separator, 1);
+            }
+
+            break;
+        case _LOG_MSG_STOP:
+            if(item.str)
+            {
+                char separator = LOG_MSG_LABEL_SEPARATOR;
+                process_string(&separator, 1);
+                process_string(item.str, item.nChars);
+            }
+            process_string(&item.msgSymbol, 1);
             break;
         }
     }

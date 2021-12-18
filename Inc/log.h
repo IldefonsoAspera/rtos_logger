@@ -141,15 +141,16 @@ extern "C" {
 
 #include "main.h"
 
-#include <string.h>
 #include <stdbool.h>
-
 
 /*********************** User configurable definitions ***********************/
 
 #define LOG_INPUT_FIFO_N_ELEM   256     // Defines log input FIFO size in number of elements (const strings, variables, etc)
 #define LOG_DELAY_LOOPS_MS      100     // Delay between log thread pollings to check if input queue contains data
 #define LOG_DEF_ARRAY_SEPARATOR ' '		// Default separator for arrays
+#define LOG_MSG_START_SYMBOL    '<'//'\x01'
+#define LOG_MSG_STOP_SYMBOL     '>'//'\x04'
+#define LOG_MSG_LABEL_SEPARATOR ' '     // If label is used, declares what char to put between label and msg body
 
 /*****************************************************************************/
 
@@ -165,6 +166,7 @@ enum log_data_type {
     _LOG_HEX_4,
     _LOG_CHAR,
     _LOG_MSG_START,
+    _LOG_MSG_STOP,
 };
 
 
@@ -191,11 +193,11 @@ typedef void (*log_out_flush_handler)(void);
                                                     _log_array_hex((array), (nItems), LOG_DEF_ARRAY_SEPARATOR))
 
 
-#define log_str(str)                    _log_str((str), strlen(str))
+#define log_str(str)                    _log_str((str), sizeof(str)-1)
 #define log_char(chr)                   _log_char(chr)
 #define log_flush()                     _log_flush(true)
-#define log_msg_start(label)            _log_msg_start((label), strlen(label))
-#define log_msg_stop()                  _log_char(LOG_MSG_STOP_SYMBOL)
+#define log_msg_start(label)            _log_msg_start((label), sizeof(label)-1)
+#define log_msg_stop(label)             _log_msg_stop((label), sizeof(label)-1)
 
 
 #define log_dec(number)                 _log_var((uint32_t)(number), _Generic((number),     \
@@ -265,6 +267,7 @@ void _log_char(char chr);
 void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, char separator);
 void _log_flush(bool isPublicCall);
 void _log_msg_start(const char *label, uint32_t length);
+void _log_msg_stop(const char *label, uint32_t length);
 
 
 void log_thread(void const * argument);
