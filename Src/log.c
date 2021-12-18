@@ -99,7 +99,7 @@ static void log_fifo_reset(log_fifo_t *pFifo)
 }
 
 
-static void process_string(const char *str, uint32_t length)
+static void process_string(char *str, uint32_t length)
 {
     if(mPrintHandler)
         mPrintHandler(str, length);
@@ -262,7 +262,6 @@ void _log_flush(bool isPublicCall)
                 char separator = LOG_MSG_LABEL_SEPARATOR;
                 process_string(&separator, 1);
             }
-
             break;
         case _LOG_MSG_STOP:
             if(item.str)

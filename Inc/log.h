@@ -170,7 +170,7 @@ enum log_data_type {
 };
 
 
-typedef void (*log_out_handler)(const char* str, uint32_t length);
+typedef void (*log_out_handler)(char* str, uint32_t length);
 typedef void (*log_out_flush_handler)(void);
 
 
