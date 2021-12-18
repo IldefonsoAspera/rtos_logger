@@ -543,6 +543,10 @@ void entry_demo_th(void const * argument)
       log_msg_stop(NULL);
       log_char('\r');
       log_char('\n');
+      log_str("Testing special character: ");
+      log_str("Ñú, Melón, Sandía, ñÚ");
+      log_char('\r');
+      log_char('\n');
 
       osDelay(500);
   }
