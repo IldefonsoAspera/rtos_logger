@@ -44,7 +44,7 @@ void vcp_th(void const * argument)
 }
 
 
-void vcp_send(void* p_data, uint32_t length)
+void vcp_send(const char* p_data, uint32_t length)
 {
     xStreamBufferSend(inputStream, p_data, length, 0);
 }

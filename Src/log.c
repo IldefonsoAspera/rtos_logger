@@ -26,7 +26,11 @@ typedef struct log_fifo_item_s
     union
     {
         uint16_t strLen;
-        uint8_t  nChars;
+        struct
+        {
+            uint8_t nChars;
+            char msgStart;
+        };
     };
     enum log_data_type type;
 } log_fifo_item_t;
@@ -160,7 +164,7 @@ void _log_str(const char *str, uint32_t length)
 
 void _log_char(char chr)
 {
-    log_fifo_item_t item = {.type = LOG_CHAR, .chr[0] = chr, .nChars = 1};
+    log_fifo_item_t item = {.type = _LOG_CHAR, .chr[0] = chr, .nChars = 1};
     log_fifo_put(&item, &logFifo);
 }
 
@@ -185,6 +189,13 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
         if(nItems)                      // Skips separator after last array item
             _log_char(separator);
     }
+}
+
+
+void _log_msg_start(const char *label, uint32_t length)
+{
+    log_fifo_item_t item = {.type = _LOG_MSG_START, .str = label, .nChars = length, .msgStart = LOG_MSG_START_SYMBOL};
+    log_fifo_put(&item, &logFifo);
 }
 
 
@@ -232,8 +243,13 @@ void _log_flush(bool isPublicCall)
         case _LOG_HEX_4:
             process_hexadecimal(item.uData, 8);
             break;
-        case LOG_CHAR:
+        case _LOG_CHAR:
             process_string(item.chr, item.nChars);
+            break;
+        case _LOG_MSG_START:
+            process_string(&item.msgStart, 1);
+            process_string(item.str, item.nChars);
+            break;
         }
     }
 

@@ -532,6 +532,11 @@ void entry_demo_th(void const * argument)
       logc_array_hex(1, arrayh16, 2);
       log_char('\r');
       log_char('\n');
+
+      log_msg_start("label ");
+      log_str("String inside label");
+      log_msg_stop();
+
       osDelay(500);
   }
   /* USER CODE END entry_demo_th */

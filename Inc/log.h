@@ -163,7 +163,8 @@ enum log_data_type {
     _LOG_HEX_1,
     _LOG_HEX_2,
     _LOG_HEX_4,
-    LOG_CHAR
+    _LOG_CHAR,
+    _LOG_MSG_START,
 };
 
 
@@ -177,12 +178,15 @@ typedef void (*log_out_flush_handler)(void);
 #define GET_MACRO(_1, NAME, ...) NAME
 
 
-#define log_array_dec(array, nItems, ...) GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
+
+
+
+#define log_array_dec(array, nItems, ...)   GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
                                                     _log_array_dec((array), (nItems), __VA_OPT__(,) __VA_ARGS__), \
                                                     _log_array_dec((array), (nItems), LOG_DEF_ARRAY_SEPARATOR))
 
 
-#define log_array_hex(array, nItems, ...) GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
+#define log_array_hex(array, nItems, ...)   GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
                                                     _log_array_hex((array), (nItems), __VA_OPT__(,) __VA_ARGS__), \
                                                     _log_array_hex((array), (nItems), LOG_DEF_ARRAY_SEPARATOR))
 
@@ -190,6 +194,8 @@ typedef void (*log_out_flush_handler)(void);
 #define log_str(str)                    _log_str((str), strlen(str))
 #define log_char(chr)                   _log_char(chr)
 #define log_flush()                     _log_flush(true)
+#define log_msg_start(label)            _log_msg_start((label), strlen(label))
+#define log_msg_stop()                  _log_char(LOG_MSG_STOP_SYMBOL)
 
 
 #define log_dec(number)                 _log_var((uint32_t)(number), _Generic((number),     \
@@ -248,6 +254,8 @@ typedef void (*log_out_flush_handler)(void);
 #define logc_char(cond, chr)                  do{ if(cond){ log_char(chr);   } } while(0)
 #define logc_array_dec(cond, array, nItems)   do{ if(cond){ log_array_dec((array), (nItems)); } } while(0)
 #define logc_array_hex(cond, array, nItems)   do{ if(cond){ log_array_hex((array), (nItems)); } } while(0)
+#define logc_msg_start(cond, label)           do{ if(cond){ log_msg_start(label); } } while(0)
+#define logc_msg_stop(cond)                   do{ if(cond){ log_msg_stop();  } } while(0)
 
 
 
@@ -256,6 +264,7 @@ void _log_str(const char *str, uint32_t length);
 void _log_char(char chr);
 void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, char separator);
 void _log_flush(bool isPublicCall);
+void _log_msg_start(const char *label, uint32_t length);
 
 
 void log_thread(void const * argument);

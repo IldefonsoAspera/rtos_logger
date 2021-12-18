@@ -11,7 +11,7 @@
 
 void vcp_flush(void);
 void vcp_th(void const * argument);
-void vcp_send(void* pData, uint32_t nBytes);
+void vcp_send(const char* pData, uint32_t nBytes);
 void vcp_init(UART_HandleTypeDef *p_huart);
 
 
