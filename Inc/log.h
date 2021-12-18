@@ -1,9 +1,11 @@
 /**
+ * @defgroup log Logger library
+ *
  * @file log.h
  * @author Ildefonso Aspera
  * @brief Logger library for FreeRTOS and Cortex M with input FIFO
- * @version 1.0.0
- * @date 2021-12-06
+ * @version 0.2.0
+ * @date 2021-12-18
  *
  * @copyright Copyright (c) 2021
  *
@@ -145,16 +147,21 @@ extern "C" {
 
 /*********************** User configurable definitions ***********************/
 
-#define LOG_INPUT_FIFO_N_ELEM   256     // Defines log input FIFO size in number of elements (const strings, variables, etc)
-#define LOG_DELAY_LOOPS_MS      100     // Delay between log thread pollings to check if input queue contains data
-#define LOG_DEF_ARRAY_SEPARATOR ' '		// Default separator for arrays
-#define LOG_MSG_START_SYMBOL    '<'//'\x01'
-#define LOG_MSG_STOP_SYMBOL     '>'//'\x04'
-#define LOG_MSG_LABEL_SEPARATOR ' '     // If label is used, declares what char to put between label and msg body
+#define LOG_INPUT_FIFO_N_ELEM   256     ///< Defines log input FIFO size in number of elements (const strings, variables, etc)
+#define LOG_DELAY_LOOPS_MS      100     ///< Delay between log thread pollings to check if input FIFO contains data
+#define LOG_DEF_ARRAY_SEPARATOR ' '		///< Default separator for arrays
+#define LOG_MSG_START_SYMBOL    '<'     ///< Symbol to be used when starting a message. If start label is used, it goes after the symbol
+#define LOG_MSG_STOP_SYMBOL     '>'     ///< Symbol to be used when ending a message. If stop label is used, it goes before the symbol
+#define LOG_MSG_LABEL_SEPARATOR ' '     ///< If label is used, declares what char to put between label and message body
 
 /*****************************************************************************/
 
 
+
+/**
+ * @brief Internal use
+ *
+ */
 enum log_data_type {
     _LOG_STRING,
     _LOG_UINT_DEC,
@@ -170,36 +177,101 @@ enum log_data_type {
 };
 
 
+/**
+ * @brief Prototype for backend print handler
+ *
+ */
 typedef void (*log_out_handler)(char* str, uint32_t length);
+
+
+/**
+ * @brief Prototype for backend flush handler
+ *
+ */
 typedef void (*log_out_flush_handler)(void);
 
 
-
-// Macro that returns the second element.
-// Used to count the number of variable arguments
+/**
+ * @brief Internal use. Returns the second element of the arg list
+ *
+ */
 #define GET_MACRO(_1, NAME, ...) NAME
 
 
-
-
-
+/**
+ * @brief Prints list of variables in decimal format. Removes leading zeroes when printing
+ * This string output contains a separator between each item and the next one
+ *
+ * @param[in] array Pointer to array of variables to print
+ * @param[in] nItems Number of variables to print
+ * @param[in] separator Optional parameter to define what separator to use. Falls back to #LOG_DEF_ARRAY_SEPARATOR
+ *
+ */
 #define log_array_dec(array, nItems, ...)   GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
                                                     _log_array_dec((array), (nItems), __VA_OPT__(,) __VA_ARGS__), \
                                                     _log_array_dec((array), (nItems), LOG_DEF_ARRAY_SEPARATOR))
 
 
+/**
+ * @brief Prints list of variables in hexadecimal format without removing leading zeroes
+ * This string output contains a separator between each item and the next one
+ * Auto formats each variable depending on its type (8 bit, 16 bit, 32 bit)
+ *
+ * @param[in] array Pointer to array of variables to print
+ * @param[in] nItems Number of variables to print
+ * @param[in] separator Optional parameter to define what separator to use. Falls back to #LOG_DEF_ARRAY_SEPARATOR
+ *
+ */
 #define log_array_hex(array, nItems, ...)   GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
                                                     _log_array_hex((array), (nItems), __VA_OPT__(,) __VA_ARGS__), \
                                                     _log_array_hex((array), (nItems), LOG_DEF_ARRAY_SEPARATOR))
 
 
+/**
+ * @brief Prints passed constant string
+ *
+ * @param[in] str String to print
+ */
 #define log_str(str)                    _log_str((str), sizeof(str)-1)
+
+
+/**
+ * @brief Prints passed char
+ *
+ * @param[in] chr Character to print
+ */
 #define log_char(chr)                   _log_char(chr)
+
+
+/**
+ * @brief Flushes input FIFO to empty it. Usually called just before a reset
+ *
+ */
 #define log_flush()                     _log_flush(true)
+
+
+/**
+ * @brief Prints starting symbol of a message (#LOG_MSG_START_SYMBOL) along with a passed label
+ *
+ * @param[in] label String to print right after starting symbol. Can be NULL for no string
+ */
 #define log_msg_start(label)            _log_msg_start((label), sizeof(label)-1)
+
+
+/**
+ * @brief Prints passed label along with an ending symbol of a message (#LOG_MSG_STOP_SYMBOL)
+ *
+ * @param[in] label String to print right before ending symbol. Can be NULL for no string
+ */
 #define log_msg_stop(label)             _log_msg_stop((label), sizeof(label)-1)
 
 
+/**
+ * @brief Prints variable in decimal format. Removes leading zeroes when printing
+ *
+ * @param[in] number Variable to print
+ *
+ */
 #define log_dec(number)                 _log_var((uint32_t)(number), _Generic((number),     \
                                                             unsigned char:  _LOG_UINT_DEC,  \
                                                             unsigned short: _LOG_UINT_DEC,  \
@@ -212,6 +284,12 @@ typedef void (*log_out_flush_handler)(void);
                                                             signed int:     _LOG_INT_DEC_4))
 
 
+/**
+ * @brief Prints variable in hexadecimal format. Does not remove leading zeroes when printing
+ *
+ * @param[in] number Variable to print
+ *
+ */
 #define log_hex(number)                 _log_var((uint32_t)(number), _Generic((number),  \
                                                             unsigned char:  _LOG_HEX_1,  \
                                                             unsigned short: _LOG_HEX_2,  \
@@ -224,6 +302,10 @@ typedef void (*log_out_flush_handler)(void);
                                                             signed int:     _LOG_HEX_4))
 
 
+/**
+ * @brief Internal use
+ *
+ */
 #define _log_array_dec(array, nItems, separator)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
                                                             _Generic((array)[0],            \
                                                             unsigned char:  _LOG_UINT_DEC,  \
@@ -237,6 +319,10 @@ typedef void (*log_out_flush_handler)(void);
                                                             signed int:     _LOG_INT_DEC_4), (separator))
 
 
+/**
+ * @brief Internal use
+ *
+ */
 #define _log_array_hex(array, nItems, separator)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
                                                             _Generic((array)[0],         \
                                                             unsigned char:  _LOG_HEX_1,  \
@@ -250,14 +336,86 @@ typedef void (*log_out_flush_handler)(void);
                                                             signed int:     _LOG_HEX_4), (separator))
 
 
+/**
+ * @brief Conditional print. If condition is true, calls #log_str
+ *
+ * @param[in] cond   Condition that must be evaluated true to execute print
+ * @param[in] string String to print
+ *
+ */
 #define logc_str(cond, string)                do{ if(cond){ log_str(string); } } while(0)
+
+
+/**
+ * @brief Conditional print. If condition is true, calls #log_dec
+ *
+ * @param[in] cond   Condition that must be evaluated true to execute print
+ * @param[in] number Variable to print
+ *
+ */
 #define logc_dec(cond, number)                do{ if(cond){ log_dec(number); } } while(0)
+
+
+/**
+ * @brief Conditional print. If condition is true, calls #log_hex
+ *
+ * @param[in] cond   Condition that must be evaluated true to execute print
+ * @param[in] number Variable to print
+ *
+ */
 #define logc_hex(cond, number)                do{ if(cond){ log_hex(number); } } while(0)
+
+
+/**
+ * @brief Conditional print. If condition is true, calls #log_char
+ *
+ * @param[in] cond   Condition that must be evaluated true to execute print
+ * @param[in] chr    Character to print
+ *
+ */
 #define logc_char(cond, chr)                  do{ if(cond){ log_char(chr);   } } while(0)
+
+
+/**
+ * @brief Conditional print. If condition is true, calls #log_array_dec
+ *
+ * @param[in] cond   Condition that must be evaluated true to execute print
+ * @param[in] array  Array of variables to print
+ * @param[in] nItems Number of variables to print
+ *
+ */
 #define logc_array_dec(cond, array, nItems)   do{ if(cond){ log_array_dec((array), (nItems)); } } while(0)
+
+
+/**
+ * @brief Conditional print. If condition is true, calls #log_array_hex
+ *
+ * @param[in] cond   Condition that must be evaluated true to execute print
+ * @param[in] array  Array of variables to print
+ * @param[in] nItems Number of variables to print
+ *
+ */
 #define logc_array_hex(cond, array, nItems)   do{ if(cond){ log_array_hex((array), (nItems)); } } while(0)
+
+
+/**
+ * @brief Conditional print. If condition is true, calls #log_msg_start
+ *
+ * @param[in] cond   Condition that must be evaluated true to execute print
+ * @param[in] label  String to print
+ *
+ */
 #define logc_msg_start(cond, label)           do{ if(cond){ log_msg_start(label); } } while(0)
-#define logc_msg_stop(cond)                   do{ if(cond){ log_msg_stop();  } } while(0)
+
+
+/**
+ * @brief Conditional print. If condition is true, calls #log_msg_stop
+ *
+ * @param[in] cond   Condition that must be evaluated true to execute print
+ * @param[in] label  String to print
+ *
+ */
+#define logc_msg_stop(cond, label)                   do{ if(cond){ log_msg_stop(label);  } } while(0)
 
 
 
@@ -270,7 +428,21 @@ void _log_msg_start(const char *label, uint32_t length);
 void _log_msg_stop(const char *label, uint32_t length);
 
 
+/**
+ * @brief Periodically checks the input FIFO to stringify items and send them to backend.
+ * Must be executed from a thread because it never returns
+ *
+ * @param[in] argument Unused
+ */
 void log_thread(void const * argument);
+
+
+/**
+ * @brief Initializer for this library
+ *
+ * @param[in] printHandler Callback function to backend that will actually print stringified items
+ * @param[in] flushHandler Optional callback to flush backend. Can be NULL
+ */
 void log_init(log_out_handler printHandler, log_out_flush_handler flushHandler);
 
 
