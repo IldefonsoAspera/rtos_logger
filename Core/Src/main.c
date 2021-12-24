@@ -433,19 +433,19 @@ void entry_demo_th(void const * argument)
 
       log_flush();
 
-      log_array_dec(array8, 4);
+      log_array_udec(array8, 4);
       log_char('\r');
       log_char('\n');
-      log_array_dec(array16, 4);
+      log_array_udec(array16, 4);
       log_char('\r');
       log_char('\n');
-      log_array_dec(array32, 4);
+      log_array_udec(array32, 4);
       log_char('\r');
       log_char('\n');
-      log_array_dec(arrays16, 4);
+      log_array_udec(arrays16, 4);
       log_char('\r');
       log_char('\n');
-      log_array_dec(arrays32, 4);
+      log_array_udec(arrays32, 4);
       log_char('\r');
       log_char('\n');
       log_array_hex(arrayh8, 4);
@@ -461,19 +461,19 @@ void entry_demo_th(void const * argument)
       log_char('\n');
 
 
-      log_dec(0);
+      log_udec(0);
       log_char('\r');
       log_char('\n');
-      log_dec(100);
+      log_udec(100);
       log_char('\r');
       log_char('\n');
-      log_dec(123);
+      log_udec(123);
       log_char('\r');
       log_char('\n');
-      log_dec(12345);
+      log_udec(12345);
       log_char('\r');
       log_char('\n');
-      log_dec(1234567890);
+      log_udec(1234567890);
       log_char('\r');
       log_char('\n');
 
@@ -490,24 +490,24 @@ void entry_demo_th(void const * argument)
       log_char('\r');
       log_char('\n');
 
-      log_dec(-123);
+      log_sdec(-123);
       log_char('\r');
       log_char('\n');
-      log_dec(-12345);
+      log_sdec(-12345);
       log_char('\r');
       log_char('\n');
-      log_dec(-1234567890);
+      log_sdec(-1234567890);
       log_char('\r');
       log_char('\n');
 
       logc_str(1, "Conditional positive\r\n");
-      logc_dec(1, (uint8_t)123);
+      logc_udec(1, (uint8_t)123);
       log_char('\r');
       log_char('\n');
       logc_hex(1, (uint8_t)0x12);
       log_char('\r');
       log_char('\n');
-      logc_dec(0, (uint8_t)88);
+      logc_udec(0, (uint8_t)88);
       logc_hex(0, (uint8_t)0x77);
       logc_str(1, "Conditional positive\r\n");
       logc_str(0, "Conditional negative\r\n");
@@ -520,13 +520,13 @@ void entry_demo_th(void const * argument)
       logc_char(1, 'a');
       log_char('\r');
       log_char('\n');
-      logc_array_dec(1, arrayh16, 2);
+      logc_array_udec(1, arrayh16, 2);
       log_char('\r');
       log_char('\n');
       logc_array_hex(1, arrayh16, 2);
       log_char('\r');
       log_char('\n');
-      logc_array_dec(1, arrayh16, 2);
+      logc_array_udec(1, arrayh16, 2);
       log_char('\r');
       log_char('\n');
       logc_array_hex(1, arrayh16, 2);

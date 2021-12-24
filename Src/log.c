@@ -34,6 +34,7 @@ typedef struct log_fifo_item_s
     union
     {
         uint16_t strLen;
+        uint8_t nBytes;
         struct
         {
             uint8_t nChars;
@@ -200,11 +201,12 @@ static void process_decimal(uint32_t number, bool isNegative)
  * @brief Stores number in input FIFO
  *
  * @param[in] number Number to store. Can be any type except float or larger than 32 bits
+ * @param[in] nBytes Size of @p number in bytes
  * @param[in] type   Type fo the number to store
  */
-void _log_var(uint32_t number, enum log_data_type type)
+void _log_var(uint32_t number, uint8_t nBytes, enum log_data_type type)
 {
-    log_fifo_item_t item = {.type = type, .uData = number};
+    log_fifo_item_t item = {.type = type, .uData = number, .nBytes = nBytes};
     log_fifo_put(&item, &logFifo);
 }
 
@@ -260,7 +262,7 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
         else
             value = *((uint8_t*)&pData[offset]);
 
-        _log_var(value, type);
+        _log_var(value, nBytesPerItem, type);
         offset += nBytesPerItem;
         if(nItems)                      // Skips separator after last array item
             _log_char(separator);
@@ -317,32 +319,31 @@ void _log_flush(bool isPublicCall)
         case _LOG_UINT_DEC:
             process_decimal(item.uData, false);
             break;
-        case _LOG_INT_DEC_1:
-            if((int8_t)item.sData < 0)
-                process_decimal((uint32_t)-((int8_t)item.sData), true);
-            else
-                process_decimal(item.uData, false);
+        case _LOG_INT_DEC:
+            switch (item.nBytes)
+            {
+            case 1:
+                if((int8_t)item.sData < 0)
+                    process_decimal((uint32_t)-((int8_t)item.sData), true);
+                else
+                    process_decimal(item.uData, false);
+                break;
+            case 2:
+                if((int16_t)item.sData < 0)
+                    process_decimal((uint32_t)-((int16_t)item.sData), true);
+                else
+                    process_decimal(item.uData, false);
+                break;
+            case 4:
+                if((int32_t)item.sData < 0)
+                    process_decimal((uint32_t)-((int32_t)item.sData), true);
+                else
+                    process_decimal(item.uData, false);
+                break;
+            }
             break;
-        case _LOG_INT_DEC_2:
-            if((int16_t)item.sData < 0)
-                process_decimal((uint32_t)-((int16_t)item.sData), true);
-            else
-                process_decimal(item.uData, false);
-            break;
-        case _LOG_INT_DEC_4:
-            if((int32_t)item.sData < 0)
-                process_decimal((uint32_t)-((int32_t)item.sData), true);
-            else
-                process_decimal(item.uData, false);
-            break;
-        case _LOG_HEX_1:
-            process_hexadecimal(item.uData, 2);
-            break;
-        case _LOG_HEX_2:
-            process_hexadecimal(item.uData, 4);
-            break;
-        case _LOG_HEX_4:
-            process_hexadecimal(item.uData, 8);
+        case _LOG_HEX:
+            process_hexadecimal(item.uData, item.nBytes*2);
             break;
         case _LOG_CHAR:
             process_string(item.chr, item.nChars);

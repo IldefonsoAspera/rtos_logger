@@ -142,15 +142,11 @@ extern "C" {
 enum log_data_type {
     _LOG_STRING,
     _LOG_UINT_DEC,
-    _LOG_INT_DEC_1,
-    _LOG_INT_DEC_2,
-    _LOG_INT_DEC_4,
-    _LOG_HEX_1,
-    _LOG_HEX_2,
-    _LOG_HEX_4,
+    _LOG_INT_DEC,
+    _LOG_HEX,
     _LOG_CHAR,
     _LOG_MSG_START,
-    _LOG_MSG_STOP,
+    _LOG_MSG_STOP
 };
 
 
@@ -176,7 +172,7 @@ typedef void (*log_out_flush_handler)(void);
 
 
 /**
- * @brief Prints list of variables in decimal format. Removes leading zeroes when printing
+ * @brief Prints list of variables in unsigned decimal format. Removes leading zeroes when printing
  * This string output contains a separator between each item and the next one
  *
  * @param[in] array Pointer to array of variables to print
@@ -185,9 +181,24 @@ typedef void (*log_out_flush_handler)(void);
  *                Accepts chars and falls back to #LOG_DEF_ARRAY_SEPARATOR
  *
  */
-#define log_array_dec(array, nItems, ...)   GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
-                                                    _log_array_dec((array), (nItems), __VA_OPT__(,) __VA_ARGS__), \
-                                                    _log_array_dec((array), (nItems), LOG_DEF_ARRAY_SEPARATOR))
+#define log_array_udec(array, nItems, ...)  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
+                                                    _log_array_udec((array), (nItems), __VA_OPT__(,) __VA_ARGS__), \
+                                                    _log_array_udec((array), (nItems), LOG_DEF_ARRAY_SEPARATOR))
+
+
+/**
+ * @brief Prints list of variables in signed decimal format. Removes leading zeroes when printing
+ * This string output contains a separator between each item and the next one
+ *
+ * @param[in] array Pointer to array of variables to print
+ * @param[in] nItems Number of variables to print
+ * @param[in] ... Optional parameter to define what separator to use.
+ *                Accepts chars and falls back to #LOG_DEF_ARRAY_SEPARATOR
+ *
+ */
+#define log_array_sdec(array, nItems, ...)  GET_MACRO(__VA_ARGS__ __VA_OPT__(,) \
+                                                    _log_array_sdec((array), (nItems), __VA_OPT__(,) __VA_ARGS__), \
+                                                    _log_array_sdec((array), (nItems), LOG_DEF_ARRAY_SEPARATOR))
 
 
 /**
@@ -246,21 +257,21 @@ typedef void (*log_out_flush_handler)(void);
 
 
 /**
- * @brief Prints variable in decimal format. Removes leading zeroes when printing
+ * @brief Prints unsigned variable in decimal format. Removes leading zeroes when printing
  *
  * @param[in] number Variable to print
  *
  */
-#define log_dec(number)                 _log_var((uint32_t)(number), _Generic((number),     \
-                                                            unsigned char:  _LOG_UINT_DEC,  \
-                                                            unsigned short: _LOG_UINT_DEC,  \
-                                                            unsigned long:  _LOG_UINT_DEC,  \
-                                                            unsigned int:   _LOG_UINT_DEC,  \
-                                                            char:           _LOG_INT_DEC_1, \
-                                                            signed char:    _LOG_INT_DEC_1, \
-                                                            signed short:   _LOG_INT_DEC_2, \
-                                                            signed long:    _LOG_INT_DEC_4, \
-                                                            signed int:     _LOG_INT_DEC_4))
+#define log_udec(number)                _log_var((uint32_t)(number), sizeof(number), _LOG_UINT_DEC)
+
+
+/**
+ * @brief Prints signed variable in decimal format. Removes leading zeroes when printing
+ *
+ * @param[in] number Variable to print
+ *
+ */
+#define log_sdec(number)                _log_var((uint32_t)(number), sizeof(number), _LOG_INT_DEC)
 
 
 /**
@@ -269,50 +280,16 @@ typedef void (*log_out_flush_handler)(void);
  * @param[in] number Variable to print
  *
  */
-#define log_hex(number)                 _log_var((uint32_t)(number), _Generic((number),  \
-                                                            unsigned char:  _LOG_HEX_1,  \
-                                                            unsigned short: _LOG_HEX_2,  \
-                                                            unsigned long:  _LOG_HEX_4,  \
-                                                            unsigned int:   _LOG_HEX_4,  \
-                                                            char:           _LOG_HEX_1,  \
-                                                            signed char:    _LOG_HEX_1,  \
-                                                            signed short:   _LOG_HEX_2,  \
-                                                            signed long:    _LOG_HEX_4,  \
-                                                            signed int:     _LOG_HEX_4))
+#define log_hex(number)                 _log_var((uint32_t)(number), sizeof(number), _LOG_HEX)
 
 
 /**
  * @brief Internal use
  *
  */
-#define _log_array_dec(array, nItems, separator)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
-                                                            _Generic((array)[0],            \
-                                                            unsigned char:  _LOG_UINT_DEC,  \
-                                                            unsigned short: _LOG_UINT_DEC,  \
-                                                            unsigned long:  _LOG_UINT_DEC,  \
-                                                            unsigned int:   _LOG_UINT_DEC,  \
-                                                            char:           _LOG_INT_DEC_1, \
-                                                            signed char:    _LOG_INT_DEC_1, \
-                                                            signed short:   _LOG_INT_DEC_2, \
-                                                            signed long:    _LOG_INT_DEC_4, \
-                                                            signed int:     _LOG_INT_DEC_4), (separator))
-
-
-/**
- * @brief Internal use
- *
- */
-#define _log_array_hex(array, nItems, separator)    _log_array((uint32_t*)(array), (nItems), sizeof((array)[0]), \
-                                                            _Generic((array)[0],         \
-                                                            unsigned char:  _LOG_HEX_1,  \
-                                                            unsigned short: _LOG_HEX_2,  \
-                                                            unsigned long:  _LOG_HEX_4,  \
-                                                            unsigned int:   _LOG_HEX_4,  \
-                                                            char:           _LOG_HEX_1,  \
-                                                            signed char:    _LOG_HEX_1,  \
-                                                            signed short:   _LOG_HEX_2,  \
-                                                            signed long:    _LOG_HEX_4,  \
-                                                            signed int:     _LOG_HEX_4), (separator))
+#define _log_array_udec(array, nItems, separator)   _log_array((array), (nItems), sizeof((array)[0]), _LOG_UINT_DEC, (separator))
+#define _log_array_sdec(array, nItems, separator)   _log_array((array), (nItems), sizeof((array)[0]), _LOG_INT_DEC,  (separator))
+#define _log_array_hex(array, nItems, separator)    _log_array((array), (nItems), sizeof((array)[0]), _LOG_HEX,      (separator))
 
 
 /**
@@ -326,13 +303,23 @@ typedef void (*log_out_flush_handler)(void);
 
 
 /**
- * @brief Conditional print. If condition is true, calls #log_dec
+ * @brief Conditional print. If condition is true, calls #log_udec
  *
  * @param[in] cond   Condition that must be evaluated true to execute print
  * @param[in] number Variable to print
  *
  */
-#define logc_dec(cond, number)                do{ if(cond){ log_dec(number); } } while(0)
+#define logc_udec(cond, number)                do{ if(cond){ log_udec(number); } } while(0)
+
+
+/**
+ * @brief Conditional print. If condition is true, calls #log_sdec
+ *
+ * @param[in] cond   Condition that must be evaluated true to execute print
+ * @param[in] number Variable to print
+ *
+ */
+#define logc_sdec(cond, number)                do{ if(cond){ log_sdec(number); } } while(0)
 
 
 /**
@@ -356,14 +343,25 @@ typedef void (*log_out_flush_handler)(void);
 
 
 /**
- * @brief Conditional print. If condition is true, calls #log_array_dec
+ * @brief Conditional print. If condition is true, calls #log_array_udec
  *
  * @param[in] cond   Condition that must be evaluated true to execute print
  * @param[in] array  Array of variables to print
  * @param[in] nItems Number of variables to print
  *
  */
-#define logc_array_dec(cond, array, nItems)   do{ if(cond){ log_array_dec((array), (nItems)); } } while(0)
+#define logc_array_udec(cond, array, nItems)   do{ if(cond){ log_array_udec((array), (nItems)); } } while(0)
+
+
+/**
+ * @brief Conditional print. If condition is true, calls #log_array_sdec
+ *
+ * @param[in] cond   Condition that must be evaluated true to execute print
+ * @param[in] array  Array of variables to print
+ * @param[in] nItems Number of variables to print
+ *
+ */
+#define logc_array_sdec(cond, array, nItems)   do{ if(cond){ log_array_sdec((array), (nItems)); } } while(0)
 
 
 /**
@@ -398,7 +396,7 @@ typedef void (*log_out_flush_handler)(void);
 
 
 
-void _log_var(uint32_t number, enum log_data_type type);
+void _log_var(uint32_t number, uint8_t nBytes, enum log_data_type type);
 void _log_str(const char *str, uint32_t length);
 void _log_char(char chr);
 void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, char separator);
