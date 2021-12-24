@@ -430,6 +430,7 @@ void entry_demo_th(void const * argument)
       log_str("Tst1\r\n");
       log_str("Tst2\r\n");
       log_str("Tst2\r\n");
+      log_str(NULL);
 
       log_flush();
 

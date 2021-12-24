@@ -220,7 +220,8 @@ void _log_var(uint32_t number, uint8_t nBytes, enum log_data_type type)
 void _log_str(const char *str, uint32_t length)
 {
     log_fifo_item_t item = {.type = _LOG_STRING, .str = str, .strLen = length};
-    log_fifo_put(&item, &logFifo);
+    if(str)
+        log_fifo_put(&item, &logFifo);
 }
 
 
@@ -349,23 +350,21 @@ void _log_flush(bool isPublicCall)
             process_string(item.chr, item.nChars);
             break;
         case _LOG_MSG_START:
+        {
             process_string(&item.msgSymbol, 1);
-            if(item.str)
-            {
-                process_string((char*)item.str, item.nChars);
-                char separator = LOG_MSG_LABEL_SEPARATOR;
-                process_string(&separator, 1);
-            }
+            process_string((char*)item.str, item.nChars);
+            char separator = LOG_MSG_LABEL_SEPARATOR;
+            process_string(&separator, 1);
             break;
+        }
         case _LOG_MSG_STOP:
-            if(item.str)
-            {
-                char separator = LOG_MSG_LABEL_SEPARATOR;
-                process_string(&separator, 1);
-                process_string((char*)item.str, item.nChars);
-            }
+        {
+            char separator = LOG_MSG_LABEL_SEPARATOR;
+            process_string(&separator, 1);
+            process_string((char*)item.str, item.nChars);
             process_string(&item.msgSymbol, 1);
             break;
+        }
         }
     }
 
