@@ -321,27 +321,10 @@ void _log_flush(bool isPublicCall)
             process_decimal(item.uData, false);
             break;
         case _LOG_INT_DEC:
-            switch (item.nBytes)
-            {
-            case 1:
-                if((int8_t)item.sData < 0)
-                    process_decimal((uint32_t)-((int8_t)item.sData), true);
-                else
-                    process_decimal(item.uData, false);
-                break;
-            case 2:
-                if((int16_t)item.sData < 0)
-                    process_decimal((uint32_t)-((int16_t)item.sData), true);
-                else
-                    process_decimal(item.uData, false);
-                break;
-            case 4:
-                if((int32_t)item.sData < 0)
-                    process_decimal((uint32_t)-((int32_t)item.sData), true);
-                else
-                    process_decimal(item.uData, false);
-                break;
-            }
+            if(item.sData < 0)
+                process_decimal(-item.uData, true);
+            else
+                process_decimal(item.uData, false);
             break;
         case _LOG_HEX:
             process_hexadecimal(item.uData, item.nBytes*2);
@@ -350,21 +333,23 @@ void _log_flush(bool isPublicCall)
             process_string(item.chr, item.nChars);
             break;
         case _LOG_MSG_START:
-        {
             process_string(&item.msgSymbol, 1);
-            process_string((char*)item.str, item.nChars);
-            char separator = LOG_MSG_LABEL_SEPARATOR;
-            process_string(&separator, 1);
+            if(item.str)
+            {
+                process_string((char*)item.str, item.nChars);
+                char separator = LOG_MSG_LABEL_SEPARATOR;
+                process_string(&separator, 1);
+            }
             break;
-        }
         case _LOG_MSG_STOP:
-        {
-            char separator = LOG_MSG_LABEL_SEPARATOR;
-            process_string(&separator, 1);
-            process_string((char*)item.str, item.nChars);
+            if(item.str)
+            {
+                char separator = LOG_MSG_LABEL_SEPARATOR;
+                process_string(&separator, 1);
+                process_string((char*)item.str, item.nChars);
+            }
             process_string(&item.msgSymbol, 1);
             break;
-        }
         }
     }
 

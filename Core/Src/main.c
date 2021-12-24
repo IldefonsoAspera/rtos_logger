@@ -429,8 +429,6 @@ void entry_demo_th(void const * argument)
       log_str("Tst0 \r\n");
       log_str("Tst1\r\n");
       log_str("Tst2\r\n");
-      log_str("Tst2\r\n");
-      log_str(NULL);
 
       log_flush();
 
@@ -498,6 +496,15 @@ void entry_demo_th(void const * argument)
       log_char('\r');
       log_char('\n');
       log_sdec(-1234567890);
+      log_char('\r');
+      log_char('\n');
+      log_sdec((int8_t)INT8_MIN);
+      log_char('\r');
+      log_char('\n');
+      log_sdec((int16_t)INT16_MIN);
+      log_char('\r');
+      log_char('\n');
+      log_sdec(INT32_MIN);
       log_char('\r');
       log_char('\n');
 
