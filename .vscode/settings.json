@@ -8,5 +8,6 @@
         "stm32g0xx_hal.h": "c",
         "stm32g0xx_ll_rcc.h": "c",
         "stm32g0xx.h": "c"
-    }
+    },
+    "files.trimTrailingWhitespace": true
 }

@@ -17,6 +17,8 @@
 
 #define LOG_ARRAY_N_ELEM(x)     (sizeof(x)/sizeof((x)[0]))  ///< Returns the number of items in an array
 
+#define LOG_FIFO_FULL_MSG       "\r\nLog input FIFO full\r\n"
+
 
 /**
  * @brief Structure for each item in the input FIFO
@@ -201,8 +203,8 @@ static void process_decimal(uint32_t number, bool isNegative)
  * @brief Stores number in input FIFO
  *
  * @param[in] number Number to store. Can be any type except float or larger than 32 bits
- * @param[in] nBytes Size of @p number in bytes
- * @param[in] type   Type fo the number to store
+ * @param[in] nBytes Size of variable inserted in @p number in bytes
+ * @param[in] type   Type of representation of the number to store
  */
 void _log_var(uint32_t number, uint8_t nBytes, enum log_data_type type)
 {
@@ -217,7 +219,7 @@ void _log_var(uint32_t number, uint8_t nBytes, enum log_data_type type)
  * @param[in] str    Pointer to string
  * @param[in] length String length without the null terminator. Must be smaller than 65536
  */
-void _log_str(const char *str, uint32_t length)
+void _log_str(const char *str, uint16_t length)
 {
     log_fifo_item_t item = {.type = _LOG_STRING, .str = str, .strLen = length};
     if(str)
@@ -239,10 +241,10 @@ void _log_char(char chr)
 
 /**
  * @brief Stores an array in the input FIFO.
- * Insertions are not atomic, meaning that between two different numbers an interrupt could take place
- * because this function stores items iteratively
+ * Insertions are not atomic, meaning that between two different numbers an interrupt
+ * could take place because this function stores items iteratively
  *
- * @param[in] pArray        Pointer to array where data to print is stored
+ * @param[in] pArray        Pointer to input array where data to print is stored
  * @param[in] nItems        Number of variables in the array to print
  * @param[in] nBytesPerItem Number of bytes per item, i.e. int16_t items would have a value of 2
  * @param[in] type          Type of each element of the array
@@ -277,7 +279,7 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
  * @param[in] label     String containing the label
  * @param[in] length    Number of characters of the label, without the null terminator. Must be smaller than 256
  */
-void _log_msg_start(const char *label, uint32_t length)
+void _log_msg_start(const char *label, uint8_t length)
 {
     log_fifo_item_t item = {.type = _LOG_MSG_START, .str = label, .nChars = length, .msgSymbol = LOG_MSG_START_SYMBOL};
     log_fifo_put(&item, &logFifo);
@@ -290,7 +292,7 @@ void _log_msg_start(const char *label, uint32_t length)
  * @param[in] label     String containing the label
  * @param[in] length    Number of characters of the label, without the null terminator. Must be smaller than 256
  */
-void _log_msg_stop(const char *label, uint32_t length)
+void _log_msg_stop(const char *label, uint8_t length)
 {
     log_fifo_item_t item = {.type = _LOG_MSG_STOP, .str = label, .nChars = length, .msgSymbol = LOG_MSG_STOP_SYMBOL};
     log_fifo_put(&item, &logFifo);
@@ -299,7 +301,7 @@ void _log_msg_stop(const char *label, uint32_t length)
 
 
 /**
- * @brief Flushes the input FIFO processing all items and sending them to backend in a blocking way
+ * @brief Processes all items in the input FIFO, sending their outputs to the backend in a blocking way
  *
  * @param[in] isPublicCall  True if function is called from outside this library
  */
@@ -308,7 +310,7 @@ void _log_flush(bool isPublicCall)
     log_fifo_item_t item;
 
     if(logFifo.nItems == LOG_ARRAY_N_ELEM(logFifo.buffer))
-        process_string("\r\nLog input FIFO full\r\n", sizeof("\r\nLog input FIFO full\r\n")-1);
+        process_string(LOG_FIFO_FULL_MSG, sizeof(LOG_FIFO_FULL_MSG)-1);
 
     while(log_fifo_get(&item, &logFifo))
     {

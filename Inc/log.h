@@ -111,12 +111,6 @@
 extern "C" {
 #endif
 
-// Eclipse CDT parser does not support C11, so suppress
-// warning when parsing but not when compiling
-#ifdef __CDT_PARSER__
-    #define _Generic(...) 0
-#endif
-
 
 #include "main.h"
 
@@ -173,7 +167,7 @@ typedef void (*log_out_flush_handler)(void);
 
 /**
  * @brief Prints list of variables in unsigned decimal format. Removes leading zeroes when printing
- * This string output contains a separator between each item and the next one
+ * The output string contains a separator between each item and the next one
  *
  * @param[in] array Pointer to array of variables to print
  * @param[in] nItems Number of variables to print
@@ -188,7 +182,7 @@ typedef void (*log_out_flush_handler)(void);
 
 /**
  * @brief Prints list of variables in signed decimal format. Removes leading zeroes when printing
- * This string output contains a separator between each item and the next one
+ * The output string contains a separator between each item and the next one
  *
  * @param[in] array Pointer to array of variables to print
  * @param[in] nItems Number of variables to print
@@ -203,7 +197,7 @@ typedef void (*log_out_flush_handler)(void);
 
 /**
  * @brief Prints list of variables in hexadecimal format without removing leading zeroes
- * This string output contains a separator between each item and the next one
+ * The output string contains a separator between each item and the next one
  * Auto formats each variable depending on its type (8 bit, 16 bit, 32 bit)
  *
  * @param[in] array Pointer to array of variables to print
@@ -234,7 +228,7 @@ typedef void (*log_out_flush_handler)(void);
 
 
 /**
- * @brief Flushes input FIFO to empty it. Usually called just before a reset
+ * @brief Flushes input FIFO to process and empty it. Usually called just before a reset
  *
  */
 #define log_flush()                     _log_flush(true)
@@ -397,12 +391,12 @@ typedef void (*log_out_flush_handler)(void);
 
 
 void _log_var(uint32_t number, uint8_t nBytes, enum log_data_type type);
-void _log_str(const char *str, uint32_t length);
+void _log_str(const char *str, uint16_t length);
 void _log_char(char chr);
 void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_data_type type, char separator);
 void _log_flush(bool isPublicCall);
-void _log_msg_start(const char *label, uint32_t length);
-void _log_msg_stop(const char *label, uint32_t length);
+void _log_msg_start(const char *label, uint8_t length);
+void _log_msg_stop(const char *label, uint8_t length);
 
 
 /**
