@@ -30,9 +30,9 @@ typedef struct log_fifo_item_s
     {
         uint32_t    uData;
         int32_t     sData;
-        const char *str;
+        const char* str;
         char        chr[4];
-    };
+    } data;
     union
     {
         uint16_t strLen;
@@ -42,7 +42,7 @@ typedef struct log_fifo_item_s
             uint8_t nChars;
             char msgSymbol;
         };
-    };
+    } size;
     enum log_data_type type;    ///< Type of item to store in the FIFO
 } log_fifo_item_t;
 
@@ -236,7 +236,7 @@ static void process_decimal(uint32_t number, bool isNegative)
  */
 void _log_var(uint32_t number, uint8_t nBytes, enum log_data_type type)
 {
-    log_fifo_item_t item = {.type = type, .uData = number, .nBytes = nBytes};
+    log_fifo_item_t item = {.type = type, .data.uData = number, .size.nBytes = nBytes};
     log_fifo_put(&item, &logFifo);
 }
 
@@ -249,7 +249,7 @@ void _log_var(uint32_t number, uint8_t nBytes, enum log_data_type type)
  */
 void _log_str(const char *str, uint16_t length)
 {
-    log_fifo_item_t item = {.type = _LOG_STRING, .str = str, .strLen = length};
+    log_fifo_item_t item = {.type = _LOG_STRING, .data.str = str, .size.strLen = length};
     if(str)
         log_fifo_put(&item, &logFifo);
 }
@@ -262,7 +262,7 @@ void _log_str(const char *str, uint16_t length)
  */
 void _log_char(char chr)
 {
-    log_fifo_item_t item = {.type = _LOG_CHAR, .chr[0] = chr, .nChars = 1};
+    log_fifo_item_t item = {.type = _LOG_CHAR, .data.chr[0] = chr, .size.nChars = 1};
     log_fifo_put(&item, &logFifo);
 }
 
@@ -309,7 +309,7 @@ void _log_array(void *pArray, uint32_t nItems, uint8_t nBytesPerItem, enum log_d
  */
 void _log_msg_start(const char *label, uint8_t length)
 {
-    log_fifo_item_t item = {.type = _LOG_MSG_START, .str = label, .nChars = length, .msgSymbol = LOG_MSG_START_SYMBOL};
+    log_fifo_item_t item = {.type = _LOG_MSG_START, .data.str = label, .size.nChars = length, .size.msgSymbol = LOG_MSG_START_SYMBOL};
     log_fifo_put(&item, &logFifo);
 }
 
@@ -322,7 +322,7 @@ void _log_msg_start(const char *label, uint8_t length)
  */
 void _log_msg_stop(const char *label, uint8_t length)
 {
-    log_fifo_item_t item = {.type = _LOG_MSG_STOP, .str = label, .nChars = length, .msgSymbol = LOG_MSG_STOP_SYMBOL};
+    log_fifo_item_t item = {.type = _LOG_MSG_STOP, .data.str = label, .size.nChars = length, .size.msgSymbol = LOG_MSG_STOP_SYMBOL};
     log_fifo_put(&item, &logFifo);
 }
 
@@ -345,40 +345,40 @@ void _log_flush(bool isPublicCall)
         switch(item.type)
         {
         case _LOG_STRING:
-            process_string((char*)item.str, item.strLen);
+            process_string((char*)item.data.str, item.size.strLen);
             break;
         case _LOG_UINT_DEC:
-            process_decimal(item.uData, false);
+            process_decimal(item.data.uData, false);
             break;
         case _LOG_INT_DEC:
-            if(item.sData < 0)
-                process_decimal(-item.uData, true);
+            if(item.data.sData < 0)
+                process_decimal(-item.data.uData, true);
             else
-                process_decimal(item.uData, false);
+                process_decimal(item.data.uData, false);
             break;
         case _LOG_HEX:
-            process_hexadecimal(item.uData, item.nBytes*2);
+            process_hexadecimal(item.data.uData, item.size.nBytes*2);
             break;
         case _LOG_CHAR:
-            process_string(item.chr, item.nChars);
+            process_string(item.data.chr, item.size.nChars);
             break;
         case _LOG_MSG_START:
-            process_string(&item.msgSymbol, 1);
-            if(item.str)
+            process_string(&item.size.msgSymbol, 1);
+            if(item.data.str)
             {
-                process_string((char*)item.str, item.nChars);
+                process_string((char*)item.data.str, item.size.nChars);
                 char separator = LOG_MSG_LABEL_SEPARATOR;
                 process_string(&separator, 1);
             }
             break;
         case _LOG_MSG_STOP:
-            if(item.str)
+            if(item.data.str)
             {
                 char separator = LOG_MSG_LABEL_SEPARATOR;
                 process_string(&separator, 1);
-                process_string((char*)item.str, item.nChars);
+                process_string((char*)item.data.str, item.size.nChars);
             }
-            process_string(&item.msgSymbol, 1);
+            process_string(&item.size.msgSymbol, 1);
             break;
         }
     }
