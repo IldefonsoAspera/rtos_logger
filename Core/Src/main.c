@@ -74,6 +74,16 @@ void entry_vcp_th(void const * argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+void log_cb_backend_flush(void)
+{
+  vcp_flush();
+}
+
+void log_cb_backend_write(char* str, uint32_t length)
+{
+  vcp_send(str, length);
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -141,7 +151,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   vcp_init(&huart2);
-  log_init(vcp_send, vcp_flush);
+  log_init();
 
   /* USER CODE END RTOS_THREADS */
 

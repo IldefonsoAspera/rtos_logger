@@ -47,6 +47,8 @@ typedef struct log_fifo_item_s
 } log_fifo_item_t;
 
 
+/************************************** Input FIFO ******************************************/
+
 /**
  * @brief Struct for the input FIFO control block
  *
@@ -61,9 +63,7 @@ typedef struct log_fifo_s
 
 
 
-static log_fifo_t            logFifo;
-static log_out_handler       mPrintHandler = NULL;
-static log_out_flush_handler mFlushHandler = NULL;
+static log_fifo_t logFifo;
 
 
 /**
@@ -132,6 +132,35 @@ static void log_fifo_reset(log_fifo_t *pFifo)
 }
 
 
+/************************************** END Input FIFO ******************************************/
+
+
+/**
+ * @brief Weak (default) function for flushing the backend (UART, USB, etc)
+ *
+ */
+__weak void log_cb_backend_flush(void)
+{
+    /* NOTE : This function should not be modified, when the callback is needed,
+            the log_cb_backend_flush could be implemented in the user file
+    */
+}
+
+
+/**
+ * @brief Weak (default) function to write string in backend input buffer
+ *
+ * @param str String to send to backend
+ * @param length Number of bytes of the string
+ */
+__weak void log_cb_backend_write(char* str, uint32_t length)
+{
+    /* NOTE : This function should not be modified, when the callback is needed,
+            the log_cb_backend_write could be implemented in the user file
+    */
+}
+
+
 /**
  * @brief Sends string to backend
  *
@@ -140,8 +169,7 @@ static void log_fifo_reset(log_fifo_t *pFifo)
  */
 static void process_string(char *str, uint32_t length)
 {
-    if(mPrintHandler)
-        mPrintHandler(str, length);
+    log_cb_backend_write(str, length);
 }
 
 
@@ -355,8 +383,8 @@ void _log_flush(bool isPublicCall)
         }
     }
 
-    if(isPublicCall && mFlushHandler)
-        mFlushHandler();
+    if(isPublicCall)
+        log_cb_backend_flush();
 }
 
 
@@ -371,10 +399,8 @@ void log_thread(void const * argument)
 }
 
 
-void log_init(log_out_handler printHandler, log_out_flush_handler flushHandler)
+void log_init(void)
 {
-    mPrintHandler = printHandler;
-    mFlushHandler = flushHandler;
     static_assert(!(LOG_INPUT_FIFO_N_ELEM & (LOG_INPUT_FIFO_N_ELEM - 1)), "Log input queue must be power of 2");
     log_fifo_reset(&logFifo);
 }

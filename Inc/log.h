@@ -145,20 +145,6 @@ enum log_data_type {
 
 
 /**
- * @brief Prototype for backend print handler
- *
- */
-typedef void (*log_out_handler)(char* str, uint32_t length);
-
-
-/**
- * @brief Prototype for backend flush handler
- *
- */
-typedef void (*log_out_flush_handler)(void);
-
-
-/**
  * @brief Internal use. Returns the second element of the arg list
  *
  */
@@ -410,11 +396,8 @@ void log_thread(void const * argument);
 
 /**
  * @brief Initializer for this library
- *
- * @param[in] printHandler Callback function to backend that will actually print stringified items
- * @param[in] flushHandler Optional callback to flush backend. Can be NULL
  */
-void log_init(log_out_handler printHandler, log_out_flush_handler flushHandler);
+void log_init();
 
 
 
